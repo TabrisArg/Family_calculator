@@ -4,13 +4,14 @@
  */
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Plus, Trash2, User, DollarSign, ArrowRight, Calculator, AlertCircle, CheckCircle2, Languages, Check, X } from 'lucide-react';
+import { Plus, Trash2, User, DollarSign, ArrowRight, Calculator, AlertCircle, CheckCircle2, Languages, Check, X, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface CostItem {
   id: string;
   name: string;
   amount: number;
+  paidById?: string;
 }
 
 interface Person {
@@ -51,7 +52,14 @@ const translations = {
     addPeopleToSee: "Añade personas para ver transacciones",
     builtWith: "Construido con React y Tailwind CSS",
     language: "Idioma",
-    editHint: "Haz clic para editar"
+    editHint: "Haz clic para editar",
+    whoPaid: "¿Quién pagó?",
+    external: "Externo / Nadie",
+    settleBasedOn: "Liquidar basado en:",
+    itemsTotal: "Total de Artículos",
+    actualPaid: "Total Pagado Real",
+    discrepancyWarning: "No se pueden calcular transacciones porque nadie ha pagado más que el costo promedio. Prueba a usar 'Total Pagado Real' o aumenta los aportes.",
+    syncContributions: "Sincronizar aportes con artículos"
   },
   en: {
     title: "Splitwise Lite",
@@ -76,7 +84,14 @@ const translations = {
     addPeopleToSee: "Add people to see transactions",
     builtWith: "Built with React & Tailwind CSS",
     language: "Language",
-    editHint: "Click to edit"
+    editHint: "Click to edit",
+    whoPaid: "Who paid?",
+    external: "External / Nobody",
+    settleBasedOn: "Settle based on:",
+    itemsTotal: "Items Total",
+    actualPaid: "Actual Paid Total",
+    discrepancyWarning: "Transactions can't be calculated because no one has paid more than the average cost. Try using 'Actual Paid Total' or increase contributions.",
+    syncContributions: "Sync contributions with items"
   }
 };
 
@@ -96,8 +111,10 @@ export default function App() {
 
   const [newCostName, setNewCostName] = useState('');
   const [newCostAmount, setNewCostAmount] = useState('');
+  const [selectedPayerId, setSelectedPayerId] = useState<string>('');
   const [newPersonName, setNewPersonName] = useState('');
   const [newPersonPaid, setNewPersonPaid] = useState('');
+  const [calculationMode, setCalculationMode] = useState<'items' | 'paid'>('items');
 
   // Editing state
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -115,11 +132,12 @@ export default function App() {
   const totals = useMemo(() => {
     const totalCost = costItems.reduce((sum, item) => sum + item.amount, 0);
     const totalPaid = people.reduce((sum, person) => sum + person.paid, 0);
-    const costEach = people.length > 0 ? totalCost / people.length : 0;
+    const targetTotal = calculationMode === 'items' ? totalCost : totalPaid;
+    const costEach = people.length > 0 ? targetTotal / people.length : 0;
     const discrepancy = totalCost - totalPaid;
 
-    return { totalCost, totalPaid, costEach, discrepancy };
-  }, [costItems, people]);
+    return { totalCost, totalPaid, costEach, discrepancy, targetTotal };
+  }, [costItems, people, calculationMode]);
 
   const { transactions, balances } = useMemo(() => {
     if (people.length === 0) return { transactions: [], balances: [] };
@@ -173,13 +191,23 @@ export default function App() {
   const addCost = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCostName || !newCostAmount) return;
-    setCostItems([...costItems, {
+    const amount = parseFloat(newCostAmount);
+    const newItem: CostItem = {
       id: crypto.randomUUID(),
       name: newCostName,
-      amount: parseFloat(newCostAmount)
-    }]);
+      amount,
+      paidById: selectedPayerId || undefined
+    };
+    
+    setCostItems([...costItems, newItem]);
+    
+    if (selectedPayerId) {
+      setPeople(people.map(p => p.id === selectedPayerId ? { ...p, paid: p.paid + amount } : p));
+    }
+    
     setNewCostName('');
     setNewCostAmount('');
+    setSelectedPayerId('');
   };
 
   const addPerson = (e: React.FormEvent) => {
@@ -194,7 +222,14 @@ export default function App() {
     setNewPersonPaid('');
   };
 
-  const removeCost = (id: string) => setCostItems(costItems.filter(i => i.id !== id));
+  const removeCost = (id: string) => {
+    const item = costItems.find(i => i.id === id);
+    if (item?.paidById) {
+      setPeople(people.map(p => p.id === item.paidById ? { ...p, paid: Math.max(0, p.paid - item.amount) } : p));
+    }
+    setCostItems(costItems.filter(i => i.id !== id));
+  };
+
   const removePerson = (id: string) => setPeople(people.filter(p => p.id !== id));
 
   const startEditing = (id: string, field: 'name' | 'amount' | 'paid', value: string | number) => {
@@ -210,7 +245,12 @@ export default function App() {
       setCostItems(costItems.map(item => item.id === editingId ? { ...item, name: editValue } : item));
       setPeople(people.map(person => person.id === editingId ? { ...person, name: editValue } : person));
     } else if (editingField === 'amount') {
-      setCostItems(costItems.map(item => item.id === editingId ? { ...item, amount: parseFloat(editValue) || 0 } : item));
+      const newAmount = parseFloat(editValue) || 0;
+      const oldItem = costItems.find(i => i.id === editingId);
+      if (oldItem?.paidById) {
+        setPeople(people.map(p => p.id === oldItem.paidById ? { ...p, paid: p.paid - oldItem.amount + newAmount } : p));
+      }
+      setCostItems(costItems.map(item => item.id === editingId ? { ...item, amount: newAmount } : item));
     } else if (editingField === 'paid') {
       setPeople(people.map(person => person.id === editingId ? { ...person, paid: parseFloat(editValue) || 0 } : person));
     }
@@ -227,6 +267,18 @@ export default function App() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') saveEdit();
     if (e.key === 'Escape') cancelEdit();
+  };
+
+  const syncContributions = () => {
+    // Attempt to match item names to people names to sync contributions
+    const newPeople = [...people];
+    costItems.forEach(item => {
+      const person = newPeople.find(p => p.name.toLowerCase() === item.name.toLowerCase());
+      if (person) {
+        person.paid = item.amount;
+      }
+    });
+    setPeople(newPeople);
   };
 
   return (
@@ -274,27 +326,41 @@ export default function App() {
               </h2>
             </div>
             <div className="p-6 space-y-4">
-              <form onSubmit={addCost} className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder={t.itemName}
-                  value={newCostName}
-                  onChange={(e) => setNewCostName(e.target.value)}
-                  className="flex-1 px-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
-                />
-                <input
-                  type="number"
-                  placeholder={t.amount}
-                  value={newCostAmount}
-                  onChange={(e) => setNewCostAmount(e.target.value)}
-                  className="w-24 px-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
-                />
-                <button
-                  type="submit"
-                  className="p-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-                >
-                  <Plus size={20} />
-                </button>
+              <form onSubmit={addCost} className="space-y-3">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder={t.itemName}
+                    value={newCostName}
+                    onChange={(e) => setNewCostName(e.target.value)}
+                    className="flex-1 px-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
+                  />
+                  <input
+                    type="number"
+                    placeholder={t.amount}
+                    value={newCostAmount}
+                    onChange={(e) => setNewCostAmount(e.target.value)}
+                    className="w-24 px-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <select
+                    value={selectedPayerId}
+                    onChange={(e) => setSelectedPayerId(e.target.value)}
+                    className="flex-1 px-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm bg-white"
+                  >
+                    <option value="">{t.whoPaid} ({t.external})</option>
+                    {people.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center"
+                  >
+                    <Plus size={20} />
+                  </button>
+                </div>
               </form>
 
               <div className="space-y-2">
@@ -307,7 +373,7 @@ export default function App() {
                       exit={{ opacity: 0, x: 10 }}
                       className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl group relative"
                     >
-                      <div className="flex-1 flex items-center gap-2">
+                      <div className="flex-1 flex flex-col">
                         {editingId === item.id && editingField === 'name' ? (
                           <input
                             ref={editInputRef}
@@ -322,9 +388,13 @@ export default function App() {
                           <span 
                             onClick={() => startEditing(item.id, 'name', item.name)}
                             className="text-sm font-medium cursor-pointer hover:text-emerald-600 transition-colors"
-                            title={t.editHint}
                           >
                             {item.name}
+                          </span>
+                        )}
+                        {item.paidById && (
+                          <span className="text-[10px] text-zinc-400 uppercase font-semibold">
+                            {t.paid} por {people.find(p => p.id === item.paidById)?.name}
                           </span>
                         )}
                       </div>
@@ -344,7 +414,6 @@ export default function App() {
                           <span 
                             onClick={() => startEditing(item.id, 'amount', item.amount)}
                             className="text-sm font-mono cursor-pointer hover:text-emerald-600 transition-colors"
-                            title={t.editHint}
                           >
                             ${item.amount.toLocaleString()}
                           </span>
@@ -369,11 +438,19 @@ export default function App() {
 
           {/* People Section */}
           <section className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-zinc-100">
+            <div className="p-6 border-b border-zinc-100 flex items-center justify-between">
               <h2 className="text-lg font-semibold flex items-center gap-2">
                 <User size={20} className="text-emerald-600" />
                 {t.people}
               </h2>
+              {Math.abs(totals.discrepancy) > 0.01 && (
+                <button 
+                  onClick={syncContributions}
+                  className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 uppercase tracking-tight"
+                >
+                  {t.syncContributions}
+                </button>
+              )}
             </div>
             <div className="p-6 space-y-4">
               <form onSubmit={addPerson} className="flex gap-2">
@@ -424,7 +501,6 @@ export default function App() {
                           <span 
                             onClick={() => startEditing(person.id, 'name', person.name)}
                             className="text-sm font-medium cursor-pointer hover:text-emerald-600 transition-colors"
-                            title={t.editHint}
                           >
                             {person.name}
                           </span>
@@ -446,7 +522,6 @@ export default function App() {
                           <span 
                             onClick={() => startEditing(person.id, 'paid', person.paid)}
                             className="text-sm font-mono cursor-pointer hover:text-emerald-600 transition-colors"
-                            title={t.editHint}
                           >
                             ${person.paid.toLocaleString()}
                           </span>
@@ -484,6 +559,28 @@ export default function App() {
             </div>
           </div>
 
+          {/* Calculation Mode Toggle */}
+          <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm">
+            <div className="flex items-center gap-2">
+              <Info size={16} className="text-zinc-400" />
+              <span className="text-sm font-medium text-zinc-600">{t.settleBasedOn}</span>
+            </div>
+            <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-lg">
+              <button
+                onClick={() => setCalculationMode('items')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${calculationMode === 'items' ? 'bg-white text-emerald-600 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+              >
+                {t.itemsTotal}
+              </button>
+              <button
+                onClick={() => setCalculationMode('paid')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${calculationMode === 'paid' ? 'bg-white text-emerald-600 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+              >
+                {t.actualPaid}
+              </button>
+            </div>
+          </div>
+
           {/* Discrepancy Alert */}
           {Math.abs(totals.discrepancy) > 0.01 && (
             <motion.div
@@ -502,17 +599,6 @@ export default function App() {
                 </span>
                 {' '}${Math.abs(totals.discrepancy).toLocaleString()}
               </div>
-            </motion.div>
-          )}
-
-          {Math.abs(totals.discrepancy) <= 0.01 && totals.totalCost > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-800 flex items-center gap-3"
-            >
-              <CheckCircle2 size={20} />
-              <div className="text-sm font-semibold">{t.noDiscrepancy}</div>
             </motion.div>
           )}
 
@@ -578,14 +664,35 @@ export default function App() {
                     </div>
                   </motion.div>
                 ))}
+                
                 {transactions.length === 0 && people.length > 0 && (
                   <div className="text-center py-8">
-                    <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <CheckCircle2 size={24} />
-                    </div>
-                    <p className="text-sm text-zinc-500 font-medium">{t.allSettled}</p>
+                    {calculationMode === 'items' && Math.abs(totals.discrepancy) > 0.01 ? (
+                      <div className="space-y-4">
+                        <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto">
+                          <AlertCircle size={24} />
+                        </div>
+                        <p className="text-sm text-zinc-500 max-w-xs mx-auto leading-relaxed">
+                          {t.discrepancyWarning}
+                        </p>
+                        <button 
+                          onClick={() => setCalculationMode('paid')}
+                          className="text-xs font-bold text-emerald-600 hover:text-emerald-700 uppercase underline underline-offset-4"
+                        >
+                          {t.settleBasedOn} {t.actualPaid}
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <CheckCircle2 size={24} />
+                        </div>
+                        <p className="text-sm text-zinc-500 font-medium">{t.allSettled}</p>
+                      </>
+                    )}
                   </div>
                 )}
+                
                 {people.length === 0 && (
                   <p className="text-center py-4 text-sm text-zinc-400 italic">{t.addPeopleToSee}</p>
                 )}
