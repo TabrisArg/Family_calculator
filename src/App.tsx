@@ -59,7 +59,7 @@ const translations = {
     settleBasedOn: "Liquidar basado en:",
     itemsTotal: "Total de Artículos",
     actualPaid: "Total Pagado Real",
-    discrepancyWarning: "No se pueden calcular transacciones porque nadie ha pagado más que el costo promedio. Prueba a usar 'Total Pagado Real' o aumenta los aportes.",
+    discrepancyWarning: "No se pueden calcular transacciones porque nadie ha pagado más que el costo promedio. Prueba a aumentar los aportes.",
     syncContributions: "Sincronizar aportes con artículos",
     share: "Compartir Resumen",
     sharing: "Generando...",
@@ -96,7 +96,7 @@ const translations = {
     settleBasedOn: "Settle based on:",
     itemsTotal: "Items Total",
     actualPaid: "Actual Paid Total",
-    discrepancyWarning: "Transactions can't be calculated because no one has paid more than the average cost. Try using 'Actual Paid Total' or increase contributions.",
+    discrepancyWarning: "Transactions can't be calculated because no one has paid more than the average cost. Try to increase contributions.",
     syncContributions: "Sync contributions with items",
     share: "Share Summary",
     sharing: "Generating...",
@@ -125,7 +125,6 @@ export default function App() {
   const [selectedPayerId, setSelectedPayerId] = useState<string>('');
   const [newPersonName, setNewPersonName] = useState('');
   const [newPersonPaid, setNewPersonPaid] = useState('');
-  const [calculationMode, setCalculationMode] = useState<'items' | 'paid'>('items');
   const [isSharing, setIsSharing] = useState(false);
   const shareRef = useRef<HTMLDivElement>(null);
 
@@ -145,12 +144,12 @@ export default function App() {
   const totals = useMemo(() => {
     const totalCost = costItems.reduce((sum, item) => sum + item.amount, 0);
     const totalPaid = people.reduce((sum, person) => sum + person.paid, 0);
-    const targetTotal = calculationMode === 'items' ? totalCost : totalPaid;
+    const targetTotal = totalCost;
     const costEach = people.length > 0 ? targetTotal / people.length : 0;
     const discrepancy = totalCost - totalPaid;
 
     return { totalCost, totalPaid, costEach, discrepancy, targetTotal };
-  }, [costItems, people, calculationMode]);
+  }, [costItems, people]);
 
   const { transactions, balances } = useMemo(() => {
     if (people.length === 0) return { transactions: [], balances: [] };
@@ -551,8 +550,8 @@ export default function App() {
                         </span>
                       )}
                       {item.paidById && (
-                        <span className="font-mono text-[9px] text-p5-purple font-black uppercase tracking-tighter">
-                          {t.paid} {people.find(p => p.id === item.paidById)?.name}
+                        <span className="font-mono text-[9px] text-black/60 font-black uppercase tracking-tighter">
+                          {t.paid} <span className="text-p5-purple">{people.find(p => p.id === item.paidById)?.name}</span>
                         </span>
                       )}
                     </div>
@@ -599,34 +598,14 @@ export default function App() {
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="p5-card p-8 bg-p5-purple text-white border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-              <p className="font-mono text-[10px] font-black uppercase tracking-[0.2em] mb-2 text-white/80">{t.totalCost}</p>
+              <p className="font-mono text-[10px] font-black uppercase tracking-[0.2em] mb-2 text-white/80">
+                {t.totalCost}
+              </p>
               <p className="text-5xl font-display italic tracking-tighter">${totals.totalCost.toLocaleString()}</p>
             </div>
             <div className="p5-card p-8 bg-p5-cyan text-black border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
               <p className="font-mono text-[10px] font-black uppercase tracking-[0.2em] mb-2 text-black/60">{t.costPerPerson}</p>
               <p className="text-5xl font-display italic tracking-tighter">${Math.round(totals.costEach).toLocaleString()}</p>
-            </div>
-          </div>
-
-          {/* Calculation Mode Toggle */}
-          <div className="p5-card p-4 flex items-center justify-between bg-white border-black">
-            <div className="flex items-center gap-3 ml-2">
-              <Info size={20} className="text-p5-purple" />
-              <span className="font-mono text-[10px] font-black uppercase tracking-widest text-black/70">{t.settleBasedOn}</span>
-            </div>
-            <div className="flex bg-black p-1">
-              <button
-                onClick={() => setCalculationMode('items')}
-                className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${calculationMode === 'items' ? 'bg-p5-yellow text-black' : 'text-white hover:text-p5-yellow'}`}
-              >
-                {t.itemsTotal}
-              </button>
-              <button
-                onClick={() => setCalculationMode('paid')}
-                className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${calculationMode === 'paid' ? 'bg-p5-yellow text-black' : 'text-white hover:text-p5-yellow'}`}
-              >
-                {t.actualPaid}
-              </button>
             </div>
           </div>
 
@@ -690,10 +669,12 @@ export default function App() {
 
           {/* Transactions Section */}
           <section className="p5-card p-8 bg-black text-white border-none shadow-[12px_12px_0px_0px_var(--color-p5-purple)]">
-            <h2 className="text-2xl font-display uppercase italic mb-8 flex items-center gap-3 text-p5-cyan">
-              <ArrowRight className="animate-bounce-x" />
-              {t.suggestedTransactions}
-            </h2>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+              <h2 className="text-2xl font-display uppercase italic flex items-center gap-3 text-p5-cyan">
+                <ArrowRight className="animate-bounce-x" />
+                {t.suggestedTransactions}
+              </h2>
+            </div>
             
             <div className="space-y-4">
               {transactions.map((t_item, i) => (
@@ -710,7 +691,7 @@ export default function App() {
                     </div>
                     <div>
                       <p className="font-black uppercase tracking-tight text-p5-cyan">{t_item.from}</p>
-                      <p className="font-mono text-[10px] uppercase tracking-widest text-white/50">{t.pays} <span className="text-white">{t_item.to}</span></p>
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-white/80">{t.pays} <span className="text-white font-bold">{t_item.to}</span></p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -721,7 +702,7 @@ export default function App() {
               
               {transactions.length === 0 && people.length > 0 && (
                 <div className="text-center py-12">
-                  {calculationMode === 'items' && Math.abs(totals.discrepancy) > 0.01 ? (
+                  {Math.abs(totals.discrepancy) > 0.01 ? (
                     <div className="space-y-6">
                       <div className="w-20 h-20 bg-p5-yellow/10 border-p5-yellow border-2 flex items-center justify-center mx-auto animate-p5-glitch">
                         <AlertCircle size={40} className="text-p5-yellow" />
@@ -729,12 +710,6 @@ export default function App() {
                       <p className="font-mono text-xs uppercase tracking-widest text-white/60 max-w-xs mx-auto leading-relaxed">
                         {t.discrepancyWarning}
                       </p>
-                      <button 
-                        onClick={() => setCalculationMode('paid')}
-                        className="p5-button bg-p5-yellow text-black border-white"
-                      >
-                        {t.settleBasedOn} {t.actualPaid}
-                      </button>
                     </div>
                   ) : (
                     <motion.div
@@ -808,7 +783,7 @@ export default function App() {
                   <div key={i} className="flex items-center justify-between border-b-2 border-black/5 pb-4 last:border-0 last:pb-0">
                     <p className="font-black uppercase tracking-tight text-lg">
                       <span className="text-p5-purple">{t_item.from}</span>
-                      <span className="mx-3 font-mono text-[10px] text-black/30 font-normal uppercase tracking-widest">{t.pays}</span>
+                      <span className="mx-3 font-mono text-[10px] text-black/60 font-bold uppercase tracking-widest">{t.pays}</span>
                       <span className="text-black">{t_item.to}</span>
                     </p>
                     <span className="text-3xl font-display italic tracking-tighter text-black">${t_item.amount.toLocaleString()}</span>

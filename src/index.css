@@ -48,7 +48,7 @@
   }
 
   .p5-input {
-    @apply w-full bg-white border-black border-[3px] px-4 py-2 font-bold focus:outline-none focus:bg-p5-yellow/10 transition-all;
+    @apply w-full bg-white border-black border-[3px] px-4 py-2 font-bold focus:outline-none focus:bg-p5-yellow/10 transition-all placeholder:text-black/50;
     border-radius: var(--theme-radius);
   }
 
@@ -58,7 +58,7 @@
   }
 
   .p5-label {
-    @apply font-mono text-xs font-bold uppercase tracking-widest text-black/60 mb-1 block;
+    @apply font-mono text-xs font-black uppercase tracking-widest text-black mb-1 block;
   }
 
   .p5-halftone {
