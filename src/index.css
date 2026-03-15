@@ -1,1 +1,122 @@
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Permanent+Marker&family=Inter:wght@400;700;900&display=swap');
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Anton", sans-serif;
+  --font-marker: "Permanent Marker", cursive;
+  --font-bebas: "Bebas Neue", sans-serif;
+  
+  --color-p5-purple: #b19cd9;
+  --color-p5-purple-dark: #5a3e8c;
+  --color-p5-black: #3d3d3d;
+  --color-p5-white: #fdfcf0;
+  --color-p5-yellow: #ffffba;
+}
+
+@layer base {
+  body {
+    @apply bg-p5-white text-p5-black overflow-x-hidden;
+    background-image: radial-gradient(circle at 2px 2px, rgba(0,0,0,0.05) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+}
+
+@layer components {
+  .p5-text-white-shadow {
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.8), -1px -1px 0px rgba(0, 0, 0, 0.8);
+  }
+  .p5-skew-left {
+    transform: skewX(-6deg);
+  }
+  
+  .p5-skew-right {
+    transform: skewX(6deg);
+  }
+
+  .p5-card {
+    @apply bg-p5-white text-p5-black relative border-4 border-p5-black;
+    box-shadow: 8px 8px 0px var(--color-p5-purple);
+    /* Removed clip-path to prevent cutting titles */
+  }
+
+  .p5-card-purple {
+    @apply bg-p5-purple text-p5-white relative border-4 border-p5-black;
+    box-shadow: 8px 8px 0px var(--color-p5-black);
+  }
+
+  .p5-button {
+    @apply bg-p5-black text-p5-white font-display uppercase tracking-widest px-6 py-2 transition-all relative overflow-hidden;
+    clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+  }
+
+  .p5-button:hover {
+    @apply bg-p5-purple text-p5-black;
+    transform: scale(1.05) rotate(-1deg);
+  }
+
+  .p5-button-yellow {
+    @apply bg-p5-yellow text-p5-black font-display uppercase tracking-widest px-6 py-2 transition-all relative overflow-hidden;
+    clip-path: polygon(0% 0%, 90% 0%, 100% 100%, 10% 100%);
+  }
+
+  .p5-button-yellow:hover {
+    @apply bg-p5-white text-p5-black;
+    transform: scale(1.05) rotate(1deg);
+  }
+
+  .p5-input {
+    @apply bg-p5-white border-b-4 border-p5-black text-p5-black font-bebas text-xl px-2 py-1 focus:outline-none focus:border-p5-purple transition-colors;
+    clip-path: polygon(0% 0%, 100% 0%, 98% 100%, 2% 100%);
+  }
+
+  .p5-header-text {
+    @apply font-display text-4xl uppercase italic tracking-tighter text-p5-white;
+    text-shadow: 3px 3px 0px var(--color-p5-black), 6px 6px 0px rgba(0,0,0,0.2);
+  }
+
+  .p5-halftone {
+    background-image: radial-gradient(var(--color-p5-black) 20%, transparent 20%);
+    background-size: 6px 6px;
+  }
+
+  .p5-halftone-purple {
+    background-image: radial-gradient(var(--color-p5-purple) 20%, transparent 20%);
+    background-size: 8px 8px;
+  }
+
+  .p5-jagged-border {
+    clip-path: polygon(
+      0% 10%, 5% 0%, 95% 5%, 100% 15%, 
+      98% 90%, 90% 100%, 10% 95%, 0% 85%
+    );
+  }
+}
+
+@keyframes p5-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-3px) rotate(-0.5deg); }
+  75% { transform: translateY(3px) rotate(0.5deg); }
+}
+
+@keyframes p5-glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+.animate-p5-glitch {
+  animation: p5-glitch 0.2s ease-in-out infinite;
+  animation-play-state: paused;
+}
+
+.animate-p5-glitch:hover {
+  animation-play-state: running;
+}
+
+.animate-p5-float {
+  animation: p5-float 3s ease-in-out infinite;
+}

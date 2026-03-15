@@ -30,7 +30,7 @@ type Language = 'es' | 'en';
 
 const translations = {
   es: {
-    title: "Splitwise Lite",
+    title: "Divisor de Gastos",
     costItems: "Artículos de Costo",
     people: "Personas y Aportes",
     itemName: "Nombre del artículo",
@@ -62,7 +62,7 @@ const translations = {
     syncContributions: "Sincronizar aportes con artículos"
   },
   en: {
-    title: "Splitwise Lite",
+    title: "Spending Splitter",
     costItems: "Cost Items",
     people: "People & Contributions",
     itemName: "Item name",
@@ -270,7 +270,6 @@ export default function App() {
   };
 
   const syncContributions = () => {
-    // Attempt to match item names to people names to sync contributions
     const newPeople = [...people];
     costItems.forEach(item => {
       const person = newPeople.find(p => p.name.toLowerCase() === item.name.toLowerCase());
@@ -282,299 +281,311 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 text-zinc-900 font-sans selection:bg-emerald-100 selection:text-emerald-900">
-      <header className="bg-white border-b border-zinc-200 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center text-white">
-              <Calculator size={20} />
-            </div>
-            <h1 className="text-xl font-semibold tracking-tight">{t.title}</h1>
+    <div className="min-h-screen bg-p5-white text-p5-black font-sans selection:bg-p5-purple selection:text-p5-white">
+      {/* Decorative Background Elements */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-30 -z-10">
+        <div className="absolute -top-20 -left-20 w-96 h-96 bg-p5-purple rotate-12 p5-halftone opacity-20" />
+        <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-p5-purple -rotate-12 p5-halftone opacity-20" />
+        
+        {/* Shards */}
+        <div className="absolute top-1/4 -left-10 w-64 h-32 bg-p5-black rotate-[30deg] p5-jagged-border opacity-5" />
+        <div className="absolute top-1/2 -right-10 w-80 h-40 bg-p5-purple -rotate-[15deg] p5-jagged-border opacity-10" />
+        <div className="absolute bottom-1/4 left-1/3 w-40 h-80 bg-p5-white rotate-[45deg] p5-jagged-border opacity-40 border-4 border-p5-black" />
+        
+        {/* Halftone Overlay */}
+        <div className="absolute inset-0 p5-halftone opacity-5" />
+      </div>
+
+      <header className="relative z-20 bg-p5-purple py-6 border-b-8 border-p5-black p5-skew-left -mt-4 shadow-[0_10px_0_rgba(0,0,0,1)]">
+        <div className="max-w-6xl mx-auto px-4 flex items-center justify-between p5-skew-right">
+          <div className="flex items-center gap-6">
+            <motion.div 
+              animate={{ rotate: [12, 15, 12] }}
+              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+              className="w-16 h-16 bg-p5-black text-p5-white flex items-center justify-center border-4 border-p5-white shadow-[4px_4px_0_rgba(255,255,255,0.5)]"
+            >
+              <Calculator size={36} />
+            </motion.div>
+            <h1 className="p5-header-text text-5xl md:text-6xl">{t.title}</h1>
           </div>
           
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-zinc-100 p-1 rounded-lg">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2 bg-p5-black p-1 border-2 border-p5-white">
               <button
                 onClick={() => setLang('es')}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${lang === 'es' ? 'bg-white text-emerald-600 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+                className={`px-4 py-1 text-sm font-display uppercase transition-all ${lang === 'es' ? 'bg-p5-white text-p5-black' : 'text-p5-white hover:bg-p5-purple hover:text-p5-black'}`}
               >
                 ES
               </button>
               <button
                 onClick={() => setLang('en')}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${lang === 'en' ? 'bg-white text-emerald-600 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+                className={`px-4 py-1 text-sm font-display uppercase transition-all ${lang === 'en' ? 'bg-p5-white text-p5-black' : 'text-p5-white hover:bg-p5-purple hover:text-p5-black'}`}
               >
                 EN
               </button>
-            </div>
-            <div className="hidden sm:block text-sm font-medium text-zinc-500">
-              {new Date().toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US')}
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <main className="relative z-10 max-w-6xl mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
         {/* Left Column: Inputs */}
-        <div className="lg:col-span-5 space-y-8">
+        <div className="lg:col-span-5 space-y-12">
           {/* Cost Items Section */}
-          <section className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-zinc-100">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <DollarSign size={20} className="text-emerald-600" />
+          <section className="p5-card p-8 rotate-1 relative">
+            <div className="absolute -top-6 -left-4 bg-p5-black text-p5-white px-6 py-2 p5-skew-left border-2 border-p5-white z-30">
+              <h2 className="font-display text-2xl uppercase italic tracking-tighter flex items-center gap-2 p5-skew-right">
+                <DollarSign size={20} className="text-p5-purple" />
                 {t.costItems}
               </h2>
             </div>
-            <div className="p-6 space-y-4">
-              <form onSubmit={addCost} className="space-y-3">
-                <div className="flex gap-2">
+            
+            <div className="mt-4">
+              <form onSubmit={addCost} className="space-y-6 mb-8">
+                <div className="flex flex-col gap-4">
                   <input
                     type="text"
                     placeholder={t.itemName}
                     value={newCostName}
                     onChange={(e) => setNewCostName(e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
+                    className="p5-input w-full"
                   />
-                  <input
-                    type="number"
-                    placeholder={t.amount}
-                    value={newCostAmount}
-                    onChange={(e) => setNewCostAmount(e.target.value)}
-                    className="w-24 px-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <select
-                    value={selectedPayerId}
-                    onChange={(e) => setSelectedPayerId(e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm bg-white"
-                  >
-                    <option value="">{t.whoPaid} ({t.external})</option>
-                    {people.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center"
-                  >
-                    <Plus size={20} />
-                  </button>
-                </div>
-              </form>
-
-              <div className="space-y-2">
-                <AnimatePresence initial={false}>
-                  {costItems.map((item) => (
-                    <motion.div
-                      key={item.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 10 }}
-                      className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl group relative"
+                  <div className="flex gap-4">
+                    <input
+                      type="number"
+                      placeholder={t.amount}
+                      value={newCostAmount}
+                      onChange={(e) => setNewCostAmount(e.target.value)}
+                      className="p5-input flex-1"
+                    />
+                    <select
+                      value={selectedPayerId}
+                      onChange={(e) => setSelectedPayerId(e.target.value)}
+                      className="p5-input flex-1 bg-white cursor-pointer"
                     >
-                      <div className="flex-1 flex flex-col">
-                        {editingId === item.id && editingField === 'name' ? (
-                          <input
-                            ref={editInputRef}
-                            type="text"
-                            value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            onBlur={saveEdit}
-                            onKeyDown={handleKeyDown}
-                            className="w-full bg-white px-2 py-1 rounded border border-emerald-500 text-sm focus:outline-none"
-                          />
-                        ) : (
-                          <span 
-                            onClick={() => startEditing(item.id, 'name', item.name)}
-                            className="text-sm font-medium cursor-pointer hover:text-emerald-600 transition-colors"
-                          >
-                            {item.name}
-                          </span>
-                        )}
-                        {item.paidById && (
-                          <span className="text-[10px] text-zinc-400 uppercase font-semibold">
-                            {t.paid} por {people.find(p => p.id === item.paidById)?.name}
-                          </span>
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        {editingId === item.id && editingField === 'amount' ? (
-                          <input
-                            ref={editInputRef}
-                            type="number"
-                            value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            onBlur={saveEdit}
-                            onKeyDown={handleKeyDown}
-                            className="w-20 bg-white px-2 py-1 rounded border border-emerald-500 text-sm font-mono focus:outline-none"
-                          />
-                        ) : (
-                          <span 
-                            onClick={() => startEditing(item.id, 'amount', item.amount)}
-                            className="text-sm font-mono cursor-pointer hover:text-emerald-600 transition-colors"
-                          >
-                            ${item.amount.toLocaleString()}
-                          </span>
-                        )}
-                        
-                        <button
-                          onClick={() => removeCost(item.id)}
-                          className="text-zinc-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                      <option value="">{t.whoPaid}</option>
+                      {people.map(p => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <button type="submit" className="p5-button-yellow w-full text-xl py-3">
+                  {t.itemName} +
+                </button>
+              </form>
+            </div>
+
+            <div className="space-y-3">
+              <AnimatePresence initial={false}>
+                {costItems.map((item) => (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, x: -50, skewX: -20 }}
+                    animate={{ opacity: 1, x: 0, skewX: -6 }}
+                    exit={{ opacity: 0, x: 50, skewX: 20 }}
+                    className="flex items-center justify-between p-4 bg-p5-black text-p5-white border-l-8 border-p5-purple group"
+                  >
+                    <div className="flex-1 flex flex-col">
+                      {editingId === item.id && editingField === 'name' ? (
+                        <input
+                          ref={editInputRef}
+                          type="text"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onBlur={saveEdit}
+                          onKeyDown={handleKeyDown}
+                          className="bg-p5-white text-p5-black px-2 py-1 font-bebas text-lg focus:outline-none"
+                        />
+                      ) : (
+                        <span 
+                          onClick={() => startEditing(item.id, 'name', item.name)}
+                          className="font-bebas text-2xl uppercase tracking-wide cursor-pointer hover:text-p5-purple transition-colors"
                         >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-                {costItems.length === 0 && (
-                  <p className="text-center py-4 text-sm text-zinc-400 italic">{t.noItems}</p>
-                )}
-              </div>
+                          {item.name}
+                        </span>
+                      )}
+                      {item.paidById && (
+                        <span className="text-[10px] text-p5-purple uppercase font-black tracking-widest">
+                          BY {people.find(p => p.id === item.paidById)?.name}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-4">
+                      {editingId === item.id && editingField === 'amount' ? (
+                        <input
+                          ref={editInputRef}
+                          type="number"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onBlur={saveEdit}
+                          onKeyDown={handleKeyDown}
+                          className="w-24 bg-p5-white text-p5-black px-2 py-1 font-bebas text-lg focus:outline-none"
+                        />
+                      ) : (
+                        <span 
+                          onClick={() => startEditing(item.id, 'amount', item.amount)}
+                          className="font-bebas text-3xl cursor-pointer hover:text-p5-purple transition-colors"
+                        >
+                          ${item.amount.toLocaleString()}
+                        </span>
+                      )}
+                      
+                      <button
+                        onClick={() => removeCost(item.id)}
+                        className="text-p5-white hover:text-p5-purple transition-colors opacity-0 group-hover:opacity-100"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
           </section>
 
           {/* People Section */}
-          <section className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-zinc-100 flex items-center justify-between">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <User size={20} className="text-emerald-600" />
+          <section className="p5-card p-8 -rotate-1 relative">
+            <div className="absolute -top-6 -right-4 bg-p5-purple text-p5-white px-6 py-2 p5-skew-right border-2 border-p5-black z-30">
+              <h2 className="font-display text-2xl uppercase italic tracking-tighter flex items-center gap-2 p5-skew-left">
+                <User size={20} className="text-p5-black" />
                 {t.people}
               </h2>
-              {Math.abs(totals.discrepancy) > 0.01 && (
+            </div>
+            
+            <div className="mt-4">
+              <div className="mb-6 flex justify-end">
                 <button 
                   onClick={syncContributions}
-                  className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 uppercase tracking-tight"
+                  className="font-marker text-p5-purple hover:scale-110 transition-transform text-sm bg-p5-black px-3 py-1 p5-skew-left"
                 >
-                  {t.syncContributions}
+                  <span className="p5-skew-right inline-block">{t.syncContributions}</span>
                 </button>
-              )}
-            </div>
-            <div className="p-6 space-y-4">
-              <form onSubmit={addPerson} className="flex gap-2">
+              </div>
+              
+              <form onSubmit={addPerson} className="flex gap-4 mb-8">
                 <input
                   type="text"
                   placeholder={t.name}
                   value={newPersonName}
                   onChange={(e) => setNewPersonName(e.target.value)}
-                  className="flex-1 px-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
+                  className="p5-input flex-1"
                 />
                 <input
                   type="number"
                   placeholder={t.paid}
                   value={newPersonPaid}
                   onChange={(e) => setNewPersonPaid(e.target.value)}
-                  className="w-24 px-3 py-2 rounded-lg border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
+                  className="p5-input w-32"
                 />
-                <button
-                  type="submit"
-                  className="p-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-                >
-                  <Plus size={20} />
+                <button type="submit" className="p5-button-yellow text-2xl px-4">
+                  +
                 </button>
               </form>
+            </div>
 
-              <div className="space-y-2">
-                <AnimatePresence initial={false}>
-                  {people.map((person) => (
-                    <motion.div
-                      key={person.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 10 }}
-                      className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl group"
-                    >
-                      <div className="flex-1 flex items-center gap-2">
-                        {editingId === person.id && editingField === 'name' ? (
-                          <input
-                            ref={editInputRef}
-                            type="text"
-                            value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            onBlur={saveEdit}
-                            onKeyDown={handleKeyDown}
-                            className="w-full bg-white px-2 py-1 rounded border border-emerald-500 text-sm focus:outline-none"
-                          />
-                        ) : (
-                          <span 
-                            onClick={() => startEditing(person.id, 'name', person.name)}
-                            className="text-sm font-medium cursor-pointer hover:text-emerald-600 transition-colors"
-                          >
-                            {person.name}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        {editingId === person.id && editingField === 'paid' ? (
-                          <input
-                            ref={editInputRef}
-                            type="number"
-                            value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            onBlur={saveEdit}
-                            onKeyDown={handleKeyDown}
-                            className="w-20 bg-white px-2 py-1 rounded border border-emerald-500 text-sm font-mono focus:outline-none"
-                          />
-                        ) : (
-                          <span 
-                            onClick={() => startEditing(person.id, 'paid', person.paid)}
-                            className="text-sm font-mono cursor-pointer hover:text-emerald-600 transition-colors"
-                          >
-                            ${person.paid.toLocaleString()}
-                          </span>
-                        )}
-
-                        <button
-                          onClick={() => removePerson(person.id)}
-                          className="text-zinc-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+            <div className="space-y-3">
+              <AnimatePresence initial={false}>
+                {people.map((person) => (
+                  <motion.div
+                    key={person.id}
+                    initial={{ opacity: 0, x: -50, skewX: 20 }}
+                    animate={{ opacity: 1, x: 0, skewX: 6 }}
+                    exit={{ opacity: 0, x: 50, skewX: -20 }}
+                    className="flex items-center justify-between p-4 bg-p5-black text-p5-white border-r-8 border-p5-purple group"
+                  >
+                    <div className="flex-1">
+                      {editingId === person.id && editingField === 'name' ? (
+                        <input
+                          ref={editInputRef}
+                          type="text"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onBlur={saveEdit}
+                          onKeyDown={handleKeyDown}
+                          className="bg-p5-white text-p5-black px-2 py-1 font-bebas text-lg focus:outline-none"
+                        />
+                      ) : (
+                        <span 
+                          onClick={() => startEditing(person.id, 'name', person.name)}
+                          className="font-bebas text-2xl uppercase tracking-wide cursor-pointer hover:text-p5-purple transition-colors"
                         >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-                {people.length === 0 && (
-                  <p className="text-center py-4 text-sm text-zinc-400 italic">{t.noPeople}</p>
-                )}
-              </div>
+                          {person.name}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      {editingId === person.id && editingField === 'paid' ? (
+                        <input
+                          ref={editInputRef}
+                          type="number"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onBlur={saveEdit}
+                          onKeyDown={handleKeyDown}
+                          className="w-24 bg-p5-white text-p5-black px-2 py-1 font-bebas text-lg focus:outline-none"
+                        />
+                      ) : (
+                        <span 
+                          onClick={() => startEditing(person.id, 'paid', person.paid)}
+                          className="font-bebas text-3xl cursor-pointer hover:text-p5-purple transition-colors"
+                        >
+                          ${person.paid.toLocaleString()}
+                        </span>
+                      )}
+
+                      <button
+                        onClick={() => removePerson(person.id)}
+                        className="text-p5-white hover:text-p5-purple transition-colors opacity-0 group-hover:opacity-100"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
           </section>
         </div>
 
         {/* Right Column: Results */}
-        <div className="lg:col-span-7 space-y-8">
+        <div className="lg:col-span-7 space-y-12">
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm">
-              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">{t.totalCost}</p>
-              <p className="text-3xl font-bold text-zinc-900">${totals.totalCost.toLocaleString()}</p>
-            </div>
-            <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm">
-              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">{t.costPerPerson}</p>
-              <p className="text-3xl font-bold text-emerald-600">${Math.round(totals.costEach).toLocaleString()}</p>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <motion.div 
+              whileHover={{ scale: 1.05, rotate: -2 }}
+              className="p5-card-purple p-8"
+            >
+              <p className="font-display text-xl uppercase italic text-p5-white p5-text-white-shadow mb-2">{t.totalCost}</p>
+              <p className="font-bebas text-7xl tracking-tighter p5-text-white-shadow drop-shadow-[4px_4px_0_rgba(0,0,0,0.5)]">${totals.totalCost.toLocaleString()}</p>
+            </motion.div>
+            <motion.div 
+              whileHover={{ scale: 1.05, rotate: 2 }}
+              className="p5-card p-8 bg-p5-black text-p5-white border-p5-purple shadow-[8px_8px_0px_var(--color-p5-purple)]"
+            >
+              <p className="font-display text-xl uppercase italic text-p5-purple mb-2">{t.costPerPerson}</p>
+              <p className="font-bebas text-7xl tracking-tighter p5-text-white-shadow drop-shadow-[4px_4px_0_rgba(177,156,217,0.5)]">${Math.round(totals.costEach).toLocaleString()}</p>
+            </motion.div>
           </div>
 
           {/* Calculation Mode Toggle */}
-          <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm">
-            <div className="flex items-center gap-2">
-              <Info size={16} className="text-zinc-400" />
-              <span className="text-sm font-medium text-zinc-600">{t.settleBasedOn}</span>
+          <div className="p5-card p-6 flex items-center justify-between rotate-1">
+            <div className="flex items-center gap-3">
+              <Info size={24} className="text-p5-purple animate-p5-float" />
+              <span className="font-display text-xl uppercase italic">{t.settleBasedOn}</span>
             </div>
-            <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-lg">
+            <div className="flex items-center gap-2 bg-p5-black p-1 border-2 border-p5-black">
               <button
                 onClick={() => setCalculationMode('items')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${calculationMode === 'items' ? 'bg-white text-emerald-600 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+                className={`px-6 py-2 font-display uppercase transition-all ${calculationMode === 'items' ? 'bg-p5-purple text-p5-white p5-text-white-shadow' : 'text-p5-white hover:bg-p5-purple/50'}`}
               >
                 {t.itemsTotal}
               </button>
               <button
                 onClick={() => setCalculationMode('paid')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${calculationMode === 'paid' ? 'bg-white text-emerald-600 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+                className={`px-6 py-2 font-display uppercase transition-all ${calculationMode === 'paid' ? 'bg-p5-purple text-p5-white p5-text-white-shadow' : 'text-p5-white hover:bg-p5-purple/50'}`}
               >
                 {t.actualPaid}
               </button>
@@ -584,117 +595,138 @@ export default function App() {
           {/* Discrepancy Alert */}
           {Math.abs(totals.discrepancy) > 0.01 && (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`p-4 rounded-xl border flex items-center gap-3 ${
-                totals.discrepancy > 0 
-                  ? 'bg-amber-50 border-amber-200 text-amber-800' 
-                  : 'bg-blue-50 border-blue-200 text-blue-800'
+              initial={{ scale: 0.8, opacity: 0, rotate: -5 }}
+              animate={{ scale: 1, opacity: 1, rotate: 0 }}
+              className={`p-8 border-8 border-p5-black shadow-[12px_12px_0_rgba(0,0,0,1)] flex items-center gap-8 relative overflow-hidden ${
+                totals.discrepancy > 0 ? 'bg-p5-yellow text-p5-black' : 'bg-p5-white text-p5-black'
               }`}
+              style={{ clipPath: 'polygon(0% 5%, 95% 0%, 100% 95%, 5% 100%)' }}
             >
-              <AlertCircle size={20} />
-              <div className="text-sm">
-                <span className="font-semibold">
+              <div className="absolute top-0 left-0 w-full h-full p5-halftone opacity-10 pointer-events-none" />
+              <div className="relative z-10 w-20 h-20 bg-p5-black text-p5-white flex items-center justify-center rotate-12 border-4 border-p5-white shrink-0">
+                <AlertCircle size={48} />
+              </div>
+              <div className="relative z-10">
+                <p className="font-display text-3xl uppercase italic leading-none mb-1 tracking-tighter">
                   {totals.discrepancy > 0 ? t.missingFunds : t.extraFunds}
-                </span>
-                {' '}${Math.abs(totals.discrepancy).toLocaleString()}
+                </p>
+                <p className="font-bebas text-6xl leading-none drop-shadow-[4px_4px_0_rgba(177,156,217,0.8)]">
+                  ${Math.abs(totals.discrepancy).toLocaleString()}
+                </p>
               </div>
             </motion.div>
           )}
 
           {/* Individual Balances Table */}
-          <section className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-zinc-100">
-              <h2 className="text-lg font-semibold">{t.individualBalances}</h2>
+          <section className="p5-card rotate-1 relative">
+            <div className="absolute top-0 left-0 w-full h-2 bg-p5-purple" />
+            <div className="p-8 bg-p5-black text-p5-white border-b-8 border-p5-purple">
+              <h2 className="font-display text-4xl uppercase italic tracking-tighter p5-text-white-shadow drop-shadow-[4px_4px_0_rgba(177,156,217,0.5)]">
+                {t.individualBalances}
+              </h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-zinc-50/50">
-                    <th className="px-6 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">{t.name}</th>
-                    <th className="px-6 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">{t.paid}</th>
-                    <th className="px-6 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">{t.netBalance}</th>
+                  <tr className="bg-p5-white text-p5-black border-b-4 border-p5-black">
+                    <th className="px-8 py-6 font-display uppercase italic text-2xl tracking-tighter">{t.name}</th>
+                    <th className="px-8 py-6 font-display uppercase italic text-2xl tracking-tighter">{t.paid}</th>
+                    <th className="px-8 py-6 font-display uppercase italic text-2xl tracking-tighter">{t.netBalance}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="bg-p5-white">
                   {balances.map((b, i) => (
-                    <tr key={i} className="hover:bg-zinc-50/30 transition-colors">
-                      <td className="px-6 py-4 text-sm font-medium">{b.name}</td>
-                      <td className="px-6 py-4 text-sm font-mono">${b.paid.toLocaleString()}</td>
-                      <td className={`px-6 py-4 text-sm font-mono font-semibold ${
-                        b.net > 0 ? 'text-emerald-600' : b.net < 0 ? 'text-red-600' : 'text-zinc-400'
+                    <tr key={i} className="hover:bg-p5-purple hover:text-p5-white transition-all group border-b-2 border-p5-black/10">
+                      <td className="px-8 py-4 font-bebas text-3xl uppercase tracking-wider group-hover:p5-text-white-shadow">{b.name}</td>
+                      <td className="px-8 py-4 font-bebas text-4xl group-hover:p5-text-white-shadow">${b.paid.toLocaleString()}</td>
+                      <td className={`px-8 py-4 font-bebas text-5xl transition-colors ${
+                         b.net > 0 ? 'text-emerald-600 group-hover:text-p5-white group-hover:p5-text-white-shadow' : b.net < 0 ? 'text-p5-purple-dark group-hover:text-p5-white group-hover:p5-text-white-shadow' : 'text-zinc-400'
                       }`}>
-                        {b.net > 0 ? '+' : ''}{Math.round(b.net).toLocaleString()}
+                        <div className="flex items-center gap-2">
+                          {b.net > 0 ? '+' : ''}{Math.round(b.net).toLocaleString()}
+                          {b.net < 0 && <span className="text-sm font-display uppercase italic ml-2">DEBT</span>}
+                        </div>
                       </td>
                     </tr>
                   ))}
-                  {balances.length === 0 && (
-                    <tr>
-                      <td colSpan={3} className="px-6 py-8 text-center text-sm text-zinc-400 italic">{t.noPeople}</td>
-                    </tr>
-                  )}
                 </tbody>
               </table>
             </div>
           </section>
 
           {/* Transactions Section */}
-          <section className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-zinc-100">
-              <h2 className="text-lg font-semibold">{t.suggestedTransactions}</h2>
+          <section className="p5-card p-8 -rotate-1 min-h-[400px] flex flex-col relative">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-p5-purple p5-halftone opacity-10 -mr-16 -mt-16 rotate-45" />
+            
+            <div className="mb-8 relative z-10">
+              <h2 className="font-display text-5xl uppercase italic tracking-tighter text-p5-purple drop-shadow-[4px_4px_0_rgba(61,61,61,0.8)]">
+                {t.suggestedTransactions}
+              </h2>
             </div>
-            <div className="p-6">
-              <div className="space-y-3">
+            
+            <div className="flex-1 flex flex-col justify-center relative z-10">
+              <div className="space-y-6">
                 {transactions.map((t_item, i) => (
                   <motion.div
                     key={i}
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                    className="flex items-center gap-4 p-4 bg-zinc-50 rounded-xl"
+                    initial={{ opacity: 0, x: 100, skewX: 20 }}
+                    animate={{ opacity: 1, x: 0, skewX: 6 }}
+                    transition={{ type: "spring", damping: 12, delay: i * 0.1 }}
+                    className="flex items-center gap-6 p-6 bg-p5-black text-p5-white relative group border-l-8 border-p5-yellow"
                   >
-                    <div className="flex-1 text-sm">
-                      <span className="font-semibold text-red-600">{t_item.from}</span>
-                      <span className="mx-2 text-zinc-400">{t.pays}</span>
-                      <span className="font-semibold text-emerald-600">{t_item.to}</span>
+                    <div className="absolute inset-0 bg-p5-purple opacity-0 group-hover:opacity-30 transition-opacity" />
+                    <div className="flex-1 p5-skew-left">
+                      <p className="font-display text-3xl uppercase italic leading-none">
+                        <span className="text-p5-purple group-hover:text-p5-white transition-colors">{t_item.from}</span>
+                        <span className="mx-4 text-p5-white text-xl opacity-50">{t.pays}</span>
+                        <span className="text-p5-yellow group-hover:text-p5-white transition-colors">{t_item.to}</span>
+                      </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <ArrowRight size={16} className="text-zinc-300" />
-                      <span className="text-lg font-bold font-mono text-zinc-900">${t_item.amount.toLocaleString()}</span>
+                    <div className="flex items-center gap-4 p5-skew-left">
+                      <ArrowRight size={24} className="text-p5-white group-hover:translate-x-2 transition-transform" />
+                      <span className="font-bebas text-6xl text-p5-white p5-text-white-shadow drop-shadow-[4px_4px_0_rgba(177,156,217,0.8)]">${t_item.amount.toLocaleString()}</span>
                     </div>
                   </motion.div>
                 ))}
                 
                 {transactions.length === 0 && people.length > 0 && (
-                  <div className="text-center py-8">
+                  <div className="text-center py-12">
                     {calculationMode === 'items' && Math.abs(totals.discrepancy) > 0.01 ? (
-                      <div className="space-y-4">
-                        <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto">
-                          <AlertCircle size={24} />
-                        </div>
-                        <p className="text-sm text-zinc-500 max-w-xs mx-auto leading-relaxed">
+                      <div className="space-y-6">
+                        <motion.div 
+                          animate={{ rotate: [0, 10, -10, 0] }}
+                          transition={{ repeat: Infinity, duration: 2 }}
+                          className="w-20 h-20 bg-p5-yellow text-p5-black rounded-full flex items-center justify-center mx-auto border-4 border-p5-black"
+                        >
+                          <AlertCircle size={40} />
+                        </motion.div>
+                        <p className="font-marker text-2xl text-p5-purple max-w-xs mx-auto leading-tight">
                           {t.discrepancyWarning}
                         </p>
                         <button 
                           onClick={() => setCalculationMode('paid')}
-                          className="text-xs font-bold text-emerald-600 hover:text-emerald-700 uppercase underline underline-offset-4"
+                          className="p5-button text-xl"
                         >
                           {t.settleBasedOn} {t.actualPaid}
                         </button>
                       </div>
                     ) : (
-                      <>
-                        <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                          <CheckCircle2 size={24} />
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="space-y-4"
+                      >
+                        <div className="w-24 h-24 bg-emerald-500 text-p5-white flex items-center justify-center mx-auto border-8 border-p5-black rotate-12 shadow-[8px_8px_0px_#000]">
+                          <CheckCircle2 size={48} />
                         </div>
-                        <p className="text-sm text-zinc-500 font-medium">{t.allSettled}</p>
-                      </>
+                        <p className="font-display text-3xl uppercase italic tracking-tighter">{t.allSettled}</p>
+                      </motion.div>
                     )}
                   </div>
                 )}
                 
                 {people.length === 0 && (
-                  <p className="text-center py-4 text-sm text-zinc-400 italic">{t.addPeopleToSee}</p>
+                  <p className="text-center font-marker text-2xl text-zinc-400">{t.addPeopleToSee}</p>
                 )}
               </div>
             </div>
@@ -702,10 +734,15 @@ export default function App() {
         </div>
       </main>
 
-      <footer className="max-w-5xl mx-auto px-4 py-12 border-t border-zinc-200 mt-12">
-        <p className="text-center text-sm text-zinc-400">
-          {t.title} &bull; {t.builtWith}
-        </p>
+      <footer className="relative z-10 max-w-5xl mx-auto px-4 py-16 border-t-4 border-p5-purple mt-20">
+        <div className="flex flex-col items-center gap-4">
+          <div className="p5-card px-8 py-2 bg-p5-black text-p5-white -rotate-2">
+            <p className="font-display text-xl uppercase italic tracking-widest">
+              {t.title} &bull; {t.builtWith}
+            </p>
+          </div>
+          <p className="font-marker text-p5-purple-dark">TAKE YOUR TIME</p>
+        </div>
       </footer>
     </div>
   );
