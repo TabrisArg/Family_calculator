@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Plus, Trash2, User, DollarSign, ArrowRight, Calculator, AlertCircle, CheckCircle2, Languages, Check, X, Info, Share2, Download } from 'lucide-react';
+import { Plus, Trash2, User, DollarSign, ArrowRight, Calculator, AlertCircle, CheckCircle2, Languages, Check, X, Info, Share2, Download, Palette } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toPng } from 'html-to-image';
 
@@ -65,7 +65,7 @@ const translations = {
     sharing: "Generando...",
     shareSuccess: "¡Imagen lista!",
     summaryFor: "Resumen para",
-    settlementSummary: "Resumen de Liquidación"
+    settlementSummary: "Resumen de Liquidación",
   },
   en: {
     title: "Spending Splitter",
@@ -102,7 +102,7 @@ const translations = {
     sharing: "Generating...",
     shareSuccess: "Image ready!",
     summaryFor: "Summary for",
-    settlementSummary: "Settlement Summary"
+    settlementSummary: "Settlement Summary",
   }
 };
 
@@ -285,12 +285,11 @@ export default function App() {
     if (!shareRef.current) return;
     setIsSharing(true);
     try {
-      // Small delay to ensure any animations settle
       await new Promise(resolve => setTimeout(resolve, 100));
       
       const dataUrl = await toPng(shareRef.current, {
         quality: 0.95,
-        backgroundColor: '#fdfcf0', // p5-white
+        backgroundColor: '#ffffff',
         cacheBust: true,
       });
       
@@ -317,115 +316,104 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-p5-white text-p5-black font-sans selection:bg-p5-purple selection:text-p5-white">
+    <div className="min-h-screen selection:bg-p5-yellow selection:text-black">
       {/* Decorative Background Elements */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-30 -z-10">
-        <div className="absolute -top-20 -left-20 w-96 h-96 bg-p5-purple rotate-12 p5-halftone opacity-20" />
-        <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-p5-purple -rotate-12 p5-halftone opacity-20" />
-        
-        {/* Shards */}
-        <div className="absolute top-1/4 -left-10 w-64 h-32 bg-p5-black rotate-[30deg] p5-jagged-border opacity-5" />
-        <div className="absolute top-1/2 -right-10 w-80 h-40 bg-p5-purple -rotate-[15deg] p5-jagged-border opacity-10" />
-        <div className="absolute bottom-1/4 left-1/3 w-40 h-80 bg-p5-white rotate-[45deg] p5-jagged-border opacity-40 border-4 border-p5-black" />
-        
-        {/* Halftone Overlay */}
-        <div className="absolute inset-0 p5-halftone opacity-5" />
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10 opacity-20">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-p5-cyan rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-p5-pink rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute top-[20%] right-[10%] w-[20%] h-[20%] bg-p5-yellow p5-halftone opacity-30" />
       </div>
 
-      <header className="relative z-20 bg-p5-purple py-6 border-b-8 border-p5-black p5-skew-left -mt-4 shadow-[0_10px_0_rgba(0,0,0,1)]">
-        <div className="max-w-6xl mx-auto px-4 flex items-center justify-between p5-skew-right">
-          <div className="flex items-center gap-6">
-            <motion.div 
-              animate={{ rotate: [12, 15, 12] }}
-              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-              className="w-16 h-16 bg-p5-black text-p5-white flex items-center justify-center border-4 border-p5-white shadow-[4px_4px_0_rgba(255,255,255,0.5)]"
-            >
-              <Calculator size={36} />
-            </motion.div>
-            <h1 className="p5-header-text text-5xl md:text-6xl">{t.title}</h1>
+      <header className="bg-white border-b-[4px] border-black py-6 sticky top-0 z-30 p5-jagged-border shadow-[0px_4px_0px_0px_rgba(0,0,0,1)]">
+        <div className="max-w-6xl mx-auto px-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-p5-purple border-black border-[3px] flex items-center justify-center text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <Calculator size={28} />
+            </div>
+            <h1 className="p5-header-text">{t.title}</h1>
           </div>
           
-          <div className="flex items-center gap-6">
-            <button
-              onClick={handleShare}
-              disabled={isSharing}
-              className="flex items-center gap-2 bg-p5-black text-p5-white px-4 py-2 border-2 border-p5-white hover:bg-p5-purple hover:text-p5-black transition-all disabled:opacity-50"
-            >
-              {isSharing ? <div className="animate-spin h-4 w-4 border-2 border-p5-white border-t-transparent rounded-full" /> : <Share2 size={18} />}
-              <span className="font-display text-sm uppercase tracking-widest hidden sm:inline">
-                {isSharing ? t.sharing : t.share}
-              </span>
-            </button>
-            <div className="flex items-center gap-2 bg-p5-black p-1 border-2 border-p5-white">
+          <div className="flex items-center gap-4">
+            <div className="flex bg-black p-1">
               <button
                 onClick={() => setLang('es')}
-                className={`px-4 py-1 text-sm font-display uppercase transition-all ${lang === 'es' ? 'bg-p5-white text-p5-black' : 'text-p5-white hover:bg-p5-purple hover:text-p5-black'}`}
+                className={`px-4 py-1.5 text-xs font-black transition-all ${lang === 'es' ? 'bg-p5-yellow text-black' : 'text-white hover:text-p5-yellow'}`}
               >
                 ES
               </button>
               <button
                 onClick={() => setLang('en')}
-                className={`px-4 py-1 text-sm font-display uppercase transition-all ${lang === 'en' ? 'bg-p5-white text-p5-black' : 'text-p5-white hover:bg-p5-purple hover:text-p5-black'}`}
+                className={`px-4 py-1.5 text-xs font-black transition-all ${lang === 'en' ? 'bg-p5-yellow text-black' : 'text-white hover:text-p5-yellow'}`}
               >
                 EN
               </button>
             </div>
+
+            <button
+              onClick={handleShare}
+              disabled={isSharing}
+              className="p5-button flex items-center gap-2"
+            >
+              {isSharing ? <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" /> : <Share2 size={18} />}
+              <span className="hidden sm:inline">{isSharing ? t.sharing : t.share}</span>
+            </button>
           </div>
         </div>
       </header>
 
-      <main className="relative z-10 max-w-6xl mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
+      <main className="max-w-6xl mx-auto px-4 py-10 grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
         {/* Left Column: Inputs */}
-        <div className="lg:col-span-5 space-y-12">
+        <div className="lg:col-span-5 space-y-8">
           {/* People Section */}
-          <section className="p5-card p-8 -rotate-1 relative">
-            <div className="absolute -top-6 -right-4 bg-p5-purple text-p5-white px-6 py-2 p5-skew-right border-2 border-p5-black z-30">
-              <h2 className="font-display text-2xl uppercase italic tracking-tighter flex items-center gap-2 p5-skew-left p5-text-white-shadow">
-                <User size={20} className="text-p5-black" />
+          <section className="p5-card p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-display uppercase italic flex items-center gap-2 text-black">
+                <User size={20} className="text-p5-purple" />
                 {t.people}
               </h2>
+              <button 
+                onClick={syncContributions}
+                className="text-[10px] font-black uppercase tracking-widest text-p5-purple hover:text-black border-b-2 border-p5-purple transition-colors"
+              >
+                {t.syncContributions}
+              </button>
             </div>
             
-            <div className="mt-4">
-              <div className="mb-6 flex justify-end">
-                <button 
-                  onClick={syncContributions}
-                  className="font-marker text-p5-purple hover:scale-110 transition-transform text-sm bg-p5-black px-3 py-1 p5-skew-left"
-                >
-                  <span className="p5-skew-right inline-block">{t.syncContributions}</span>
-                </button>
-              </div>
-              
-              <form onSubmit={addPerson} className="flex gap-4 mb-8">
+            <form onSubmit={addPerson} className="flex gap-3 mb-6">
+              <div className="flex-1">
+                <label className="p5-label">{t.name}</label>
                 <input
                   type="text"
                   placeholder={t.name}
                   value={newPersonName}
                   onChange={(e) => setNewPersonName(e.target.value)}
-                  className="p5-input flex-1"
+                  className="p5-input"
                 />
+              </div>
+              <div className="w-28">
+                <label className="p5-label">{t.paid}</label>
                 <input
                   type="number"
                   placeholder={t.paid}
                   value={newPersonPaid}
                   onChange={(e) => setNewPersonPaid(e.target.value)}
-                  className="p5-input w-32"
+                  className="p5-input"
                 />
-                <button type="submit" className="p5-button-yellow text-2xl px-4">
-                  +
-                </button>
-              </form>
-            </div>
+              </div>
+              <button type="submit" className="p5-button self-end h-[46px] w-[46px] flex items-center justify-center p-0">
+                <Plus size={24} />
+              </button>
+            </form>
 
             <div className="space-y-3">
               <AnimatePresence initial={false}>
                 {people.map((person) => (
                   <motion.div
                     key={person.id}
-                    initial={{ opacity: 0, x: -50, skewX: 20 }}
-                    animate={{ opacity: 1, x: 0, skewX: 6 }}
-                    exit={{ opacity: 0, x: 50, skewX: -20 }}
-                    className="flex items-center justify-between p-4 bg-p5-black text-p5-white border-r-8 border-p5-purple group"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="flex items-center justify-between p-3 bg-white border-black border-[2px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] group"
                   >
                     <div className="flex-1">
                       {editingId === person.id && editingField === 'name' ? (
@@ -436,19 +424,19 @@ export default function App() {
                           onChange={(e) => setEditValue(e.target.value)}
                           onBlur={saveEdit}
                           onKeyDown={handleKeyDown}
-                          className="bg-p5-white text-p5-black px-2 py-1 font-bebas text-lg focus:outline-none"
+                          className="w-full bg-p5-yellow/10 border-black border-b-2 px-2 py-1 text-sm focus:outline-none"
                         />
                       ) : (
                         <span 
                           onClick={() => startEditing(person.id, 'name', person.name)}
-                          className="font-bebas text-2xl uppercase tracking-wide cursor-pointer hover:text-p5-purple transition-colors"
+                          className="font-black uppercase tracking-tight text-black cursor-pointer hover:text-p5-purple transition-colors"
                         >
                           {person.name}
                         </span>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                       {editingId === person.id && editingField === 'paid' ? (
                         <input
                           ref={editInputRef}
@@ -457,12 +445,12 @@ export default function App() {
                           onChange={(e) => setEditValue(e.target.value)}
                           onBlur={saveEdit}
                           onKeyDown={handleKeyDown}
-                          className="w-24 bg-p5-white text-p5-black px-2 py-1 font-bebas text-lg focus:outline-none"
+                          className="w-20 bg-p5-yellow/10 border-black border-b-2 px-2 py-1 text-sm focus:outline-none"
                         />
                       ) : (
                         <span 
                           onClick={() => startEditing(person.id, 'paid', person.paid)}
-                          className="font-bebas text-3xl cursor-pointer hover:text-p5-purple transition-colors"
+                          className="font-mono font-bold text-black bg-p5-cyan/20 px-2 py-0.5 cursor-pointer hover:bg-p5-cyan/40 transition-colors"
                         >
                           ${person.paid.toLocaleString()}
                         </span>
@@ -470,71 +458,78 @@ export default function App() {
 
                       <button
                         onClick={() => removePerson(person.id)}
-                        className="text-p5-white hover:text-p5-purple transition-colors opacity-0 group-hover:opacity-100"
+                        className="text-black/30 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"
                       >
-                        <Trash2 size={20} />
+                        <Trash2 size={18} />
                       </button>
                     </div>
                   </motion.div>
                 ))}
               </AnimatePresence>
+              {people.length === 0 && (
+                <p className="text-center py-4 text-black/40 font-mono text-xs uppercase tracking-widest">{t.noPeople}</p>
+              )}
             </div>
           </section>
 
           {/* Cost Items Section */}
-          <section className="p5-card p-8 rotate-1 relative">
-            <div className="absolute -top-6 -left-4 bg-p5-black text-p5-white px-6 py-2 p5-skew-left border-2 border-p5-white z-30">
-              <h2 className="font-display text-2xl uppercase italic tracking-tighter flex items-center gap-2 p5-skew-right">
-                <DollarSign size={20} className="text-p5-purple" />
-                {t.costItems}
-              </h2>
-            </div>
+          <section className="p5-card p-6">
+            <h2 className="text-xl font-display uppercase italic flex items-center gap-2 text-black mb-6">
+              <DollarSign size={20} className="text-p5-purple" />
+              {t.costItems}
+            </h2>
             
-            <div className="mt-4">
-              <form onSubmit={addCost} className="space-y-6 mb-8">
-                <div className="flex flex-col gap-4">
+            <form onSubmit={addCost} className="space-y-4 mb-6">
+              <div>
+                <label className="p5-label">{t.itemName}</label>
+                <input
+                  type="text"
+                  placeholder={t.itemName}
+                  value={newCostName}
+                  onChange={(e) => setNewCostName(e.target.value)}
+                  className="p5-input"
+                />
+              </div>
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="p5-label">{t.amount}</label>
                   <input
-                    type="text"
-                    placeholder={t.itemName}
-                    value={newCostName}
-                    onChange={(e) => setNewCostName(e.target.value)}
-                    className="p5-input w-full"
+                    type="number"
+                    placeholder={t.amount}
+                    value={newCostAmount}
+                    onChange={(e) => setNewCostAmount(e.target.value)}
+                    className="p5-input"
                   />
-                  <div className="flex gap-4">
-                    <input
-                      type="number"
-                      placeholder={t.amount}
-                      value={newCostAmount}
-                      onChange={(e) => setNewCostAmount(e.target.value)}
-                      className="p5-input flex-1"
-                    />
-                    <select
-                      value={selectedPayerId}
-                      onChange={(e) => setSelectedPayerId(e.target.value)}
-                      className="p5-input flex-1 bg-white cursor-pointer"
-                    >
-                      <option value="">{t.whoPaid}</option>
-                      {people.map(p => (
-                        <option key={p.id} value={p.id}>{p.name}</option>
-                      ))}
-                    </select>
-                  </div>
                 </div>
-                <button type="submit" className="p5-button-yellow w-full text-xl py-3">
-                  {t.itemName} +
-                </button>
-              </form>
-            </div>
+                <div className="flex-1">
+                  <label className="p5-label">{t.whoPaid}</label>
+                  <select
+                    value={selectedPayerId}
+                    onChange={(e) => setSelectedPayerId(e.target.value)}
+                    className="p5-input bg-white cursor-pointer appearance-none"
+                  >
+                    <option value="">{t.whoPaid}</option>
+                    {people.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <button type="submit" className="p5-button w-full flex items-center justify-center gap-2">
+                <Plus size={20} />
+                {t.costItems}
+              </button>
+            </form>
 
             <div className="space-y-3">
               <AnimatePresence initial={false}>
                 {costItems.map((item) => (
                   <motion.div
                     key={item.id}
-                    initial={{ opacity: 0, x: -50, skewX: -20 }}
-                    animate={{ opacity: 1, x: 0, skewX: -6 }}
-                    exit={{ opacity: 0, x: 50, skewX: 20 }}
-                    className="flex items-center justify-between p-4 bg-p5-black text-p5-white border-l-8 border-p5-purple group"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="flex items-center justify-between p-3 bg-white border-black border-[2px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] group"
                   >
                     <div className="flex-1 flex flex-col">
                       {editingId === item.id && editingField === 'name' ? (
@@ -545,24 +540,24 @@ export default function App() {
                           onChange={(e) => setEditValue(e.target.value)}
                           onBlur={saveEdit}
                           onKeyDown={handleKeyDown}
-                          className="bg-p5-white text-p5-black px-2 py-1 font-bebas text-lg focus:outline-none"
+                          className="w-full bg-p5-yellow/10 border-black border-b-2 px-2 py-1 text-sm focus:outline-none"
                         />
                       ) : (
                         <span 
                           onClick={() => startEditing(item.id, 'name', item.name)}
-                          className="font-bebas text-2xl uppercase tracking-wide cursor-pointer hover:text-p5-purple transition-colors"
+                          className="font-black uppercase tracking-tight text-black cursor-pointer hover:text-p5-purple transition-colors"
                         >
                           {item.name}
                         </span>
                       )}
                       {item.paidById && (
-                        <span className="text-[10px] text-p5-purple uppercase font-black tracking-widest">
-                          BY {people.find(p => p.id === item.paidById)?.name}
+                        <span className="font-mono text-[9px] text-p5-purple font-black uppercase tracking-tighter">
+                          {t.paid} {people.find(p => p.id === item.paidById)?.name}
                         </span>
                       )}
                     </div>
                     
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                       {editingId === item.id && editingField === 'amount' ? (
                         <input
                           ref={editInputRef}
@@ -571,12 +566,12 @@ export default function App() {
                           onChange={(e) => setEditValue(e.target.value)}
                           onBlur={saveEdit}
                           onKeyDown={handleKeyDown}
-                          className="w-24 bg-p5-white text-p5-black px-2 py-1 font-bebas text-lg focus:outline-none"
+                          className="w-20 bg-p5-yellow/10 border-black border-b-2 px-2 py-1 text-sm focus:outline-none"
                         />
                       ) : (
                         <span 
                           onClick={() => startEditing(item.id, 'amount', item.amount)}
-                          className="font-bebas text-3xl cursor-pointer hover:text-p5-purple transition-colors"
+                          className="font-mono font-bold text-black bg-p5-pink/20 px-2 py-0.5 cursor-pointer hover:bg-p5-pink/40 transition-colors"
                         >
                           ${item.amount.toLocaleString()}
                         </span>
@@ -584,54 +579,51 @@ export default function App() {
                       
                       <button
                         onClick={() => removeCost(item.id)}
-                        className="text-p5-white hover:text-p5-purple transition-colors opacity-0 group-hover:opacity-100"
+                        className="text-black/30 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"
                       >
-                        <Trash2 size={20} />
+                        <Trash2 size={18} />
                       </button>
                     </div>
                   </motion.div>
                 ))}
               </AnimatePresence>
+              {costItems.length === 0 && (
+                <p className="text-center py-4 text-black/40 font-mono text-xs uppercase tracking-widest">{t.noItems}</p>
+              )}
             </div>
           </section>
         </div>
 
         {/* Right Column: Results */}
-        <div className="lg:col-span-7 space-y-12">
+        <div className="lg:col-span-7 space-y-8">
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-            <motion.div 
-              whileHover={{ scale: 1.05, rotate: -2 }}
-              className="p5-card-purple p-8"
-            >
-              <p className="font-display text-xl uppercase italic text-p5-white p5-text-white-shadow mb-2">{t.totalCost}</p>
-              <p className="font-bebas text-7xl tracking-tighter p5-text-white-shadow drop-shadow-[4px_4px_0_rgba(0,0,0,0.5)]">${totals.totalCost.toLocaleString()}</p>
-            </motion.div>
-            <motion.div 
-              whileHover={{ scale: 1.05, rotate: 2 }}
-              className="p5-card p-8 bg-p5-black text-p5-white border-p5-purple shadow-[8px_8px_0px_var(--color-p5-purple)]"
-            >
-              <p className="font-display text-xl uppercase italic text-p5-purple mb-2">{t.costPerPerson}</p>
-              <p className="font-bebas text-7xl tracking-tighter p5-text-white-shadow drop-shadow-[4px_4px_0_rgba(177,156,217,0.5)]">${Math.round(totals.costEach).toLocaleString()}</p>
-            </motion.div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="p5-card p-8 bg-p5-purple text-white border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+              <p className="font-mono text-[10px] font-black uppercase tracking-[0.2em] mb-2 text-white/80">{t.totalCost}</p>
+              <p className="text-5xl font-display italic tracking-tighter">${totals.totalCost.toLocaleString()}</p>
+            </div>
+            <div className="p5-card p-8 bg-p5-cyan text-black border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+              <p className="font-mono text-[10px] font-black uppercase tracking-[0.2em] mb-2 text-black/60">{t.costPerPerson}</p>
+              <p className="text-5xl font-display italic tracking-tighter">${Math.round(totals.costEach).toLocaleString()}</p>
+            </div>
           </div>
 
           {/* Calculation Mode Toggle */}
-          <div className="p5-card p-6 flex items-center justify-between rotate-1">
-            <div className="flex items-center gap-3">
-              <Info size={24} className="text-p5-purple animate-p5-float" />
-              <span className="font-display text-xl uppercase italic">{t.settleBasedOn}</span>
+          <div className="p5-card p-4 flex items-center justify-between bg-white border-black">
+            <div className="flex items-center gap-3 ml-2">
+              <Info size={20} className="text-p5-purple" />
+              <span className="font-mono text-[10px] font-black uppercase tracking-widest text-black/70">{t.settleBasedOn}</span>
             </div>
-            <div className="flex items-center gap-2 bg-p5-black p-1 border-2 border-p5-black">
+            <div className="flex bg-black p-1">
               <button
                 onClick={() => setCalculationMode('items')}
-                className={`px-6 py-2 font-display uppercase transition-all ${calculationMode === 'items' ? 'bg-p5-purple text-p5-white p5-text-white-shadow' : 'text-p5-white hover:bg-p5-purple/50'}`}
+                className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${calculationMode === 'items' ? 'bg-p5-yellow text-black' : 'text-white hover:text-p5-yellow'}`}
               >
                 {t.itemsTotal}
               </button>
               <button
                 onClick={() => setCalculationMode('paid')}
-                className={`px-6 py-2 font-display uppercase transition-all ${calculationMode === 'paid' ? 'bg-p5-purple text-p5-white p5-text-white-shadow' : 'text-p5-white hover:bg-p5-purple/50'}`}
+                className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${calculationMode === 'paid' ? 'bg-p5-yellow text-black' : 'text-white hover:text-p5-yellow'}`}
               >
                 {t.actualPaid}
               </button>
@@ -641,22 +633,22 @@ export default function App() {
           {/* Discrepancy Alert */}
           {Math.abs(totals.discrepancy) > 0.01 && (
             <motion.div
-              initial={{ scale: 0.8, opacity: 0, rotate: -5 }}
-              animate={{ scale: 1, opacity: 1, rotate: 0 }}
-              className={`p-8 border-8 border-p5-black shadow-[12px_12px_0_rgba(0,0,0,1)] flex items-center gap-8 relative overflow-hidden ${
-                totals.discrepancy > 0 ? 'bg-p5-yellow text-p5-black' : 'bg-p5-white text-p5-black'
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`p-6 border-black border-[3px] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex items-center gap-4 ${
+                totals.discrepancy > 0 
+                  ? 'bg-p5-yellow text-black' 
+                  : 'bg-p5-green text-black'
               }`}
-              style={{ clipPath: 'polygon(0% 5%, 95% 0%, 100% 95%, 5% 100%)' }}
             >
-              <div className="absolute top-0 left-0 w-full h-full p5-halftone opacity-10 pointer-events-none" />
-              <div className="relative z-10 w-20 h-20 bg-p5-black text-p5-white flex items-center justify-center rotate-12 border-4 border-p5-white shrink-0">
-                <AlertCircle size={48} />
+              <div className="w-12 h-12 bg-black/10 border-black border-2 flex items-center justify-center shrink-0">
+                <AlertCircle size={24} />
               </div>
-              <div className="relative z-10">
-                <p className="font-display text-3xl uppercase italic leading-none mb-1 tracking-tighter">
+              <div>
+                <p className="font-mono text-[10px] font-black uppercase tracking-widest opacity-70">
                   {totals.discrepancy > 0 ? t.missingFunds : t.extraFunds}
                 </p>
-                <p className="font-bebas text-6xl leading-none drop-shadow-[4px_4px_0_rgba(177,156,217,0.8)]">
+                <p className="text-3xl font-display italic tracking-tighter">
                   ${Math.abs(totals.discrepancy).toLocaleString()}
                 </p>
               </div>
@@ -664,34 +656,30 @@ export default function App() {
           )}
 
           {/* Individual Balances Table */}
-          <section className="p5-card rotate-1 relative">
-            <div className="absolute top-0 left-0 w-full h-2 bg-p5-purple" />
-            <div className="p-8 bg-p5-black text-p5-white border-b-8 border-p5-purple">
-              <h2 className="font-display text-4xl uppercase italic tracking-tighter p5-text-white-shadow drop-shadow-[4px_4px_0_rgba(177,156,217,0.5)]">
+          <section className="p5-card overflow-hidden">
+            <div className="p-6 border-b-[3px] border-black bg-p5-pink/10">
+              <h2 className="text-xl font-display uppercase italic text-black">
                 {t.individualBalances}
               </h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-p5-white text-p5-black border-b-4 border-p5-black">
-                    <th className="px-8 py-6 font-display uppercase italic text-2xl tracking-tighter">{t.name}</th>
-                    <th className="px-8 py-6 font-display uppercase italic text-2xl tracking-tighter">{t.paid}</th>
-                    <th className="px-8 py-6 font-display uppercase italic text-2xl tracking-tighter">{t.netBalance}</th>
+                  <tr className="bg-black text-white font-mono text-[10px] uppercase tracking-[0.2em]">
+                    <th className="px-6 py-4">{t.name}</th>
+                    <th className="px-6 py-4">{t.paid}</th>
+                    <th className="px-6 py-4 text-right">{t.netBalance}</th>
                   </tr>
                 </thead>
-                <tbody className="bg-p5-white">
+                <tbody className="divide-y-[2px] divide-black/10">
                   {balances.map((b, i) => (
-                    <tr key={i} className="hover:bg-p5-purple hover:text-p5-white transition-all group border-b-2 border-p5-black/10">
-                      <td className="px-8 py-4 font-bebas text-3xl uppercase tracking-wider group-hover:p5-text-white-shadow">{b.name}</td>
-                      <td className="px-8 py-4 font-bebas text-4xl group-hover:p5-text-white-shadow">${b.paid.toLocaleString()}</td>
-                      <td className={`px-8 py-4 font-bebas text-5xl transition-colors ${
-                         b.net > 0 ? 'text-emerald-600 group-hover:text-p5-white group-hover:p5-text-white-shadow' : b.net < 0 ? 'text-p5-purple-dark group-hover:text-p5-white group-hover:p5-text-white-shadow' : 'text-zinc-400'
+                    <tr key={i} className="hover:bg-p5-yellow/5 transition-colors">
+                      <td className="px-6 py-4 font-black uppercase tracking-tight text-black">{b.name}</td>
+                      <td className="px-6 py-4 font-mono text-sm text-black/70">${b.paid.toLocaleString()}</td>
+                      <td className={`px-6 py-4 text-right font-display italic text-2xl ${
+                         b.net > 0 ? 'text-emerald-600' : b.net < 0 ? 'text-rose-600' : 'text-black/30'
                       }`}>
-                        <div className="flex items-center gap-2">
-                          {b.net > 0 ? '+' : ''}{Math.round(b.net).toLocaleString()}
-                          {b.net < 0 && <span className="text-sm font-display uppercase italic ml-2">DEBT</span>}
-                        </div>
+                        {b.net > 0 ? '+' : ''}{Math.round(b.net).toLocaleString()}
                       </td>
                     </tr>
                   ))}
@@ -701,153 +689,139 @@ export default function App() {
           </section>
 
           {/* Transactions Section */}
-          <section className="p5-card p-8 -rotate-1 min-h-[400px] flex flex-col relative">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-p5-purple p5-halftone opacity-10 -mr-16 -mt-16 rotate-45" />
+          <section className="p5-card p-8 bg-black text-white border-none shadow-[12px_12px_0px_0px_var(--color-p5-purple)]">
+            <h2 className="text-2xl font-display uppercase italic mb-8 flex items-center gap-3 text-p5-cyan">
+              <ArrowRight className="animate-bounce-x" />
+              {t.suggestedTransactions}
+            </h2>
             
-            <div className="mb-8 relative z-10">
-              <h2 className="font-display text-5xl uppercase italic tracking-tighter text-p5-purple drop-shadow-[4px_4px_0_rgba(61,61,61,0.8)]">
-                {t.suggestedTransactions}
-              </h2>
-            </div>
-            
-            <div className="flex-1 flex flex-col justify-center relative z-10">
-              <div className="space-y-6">
-                {transactions.map((t_item, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: 100, skewX: 20 }}
-                    animate={{ opacity: 1, x: 0, skewX: 6 }}
-                    transition={{ type: "spring", damping: 12, delay: i * 0.1 }}
-                    className="flex items-center gap-6 p-6 bg-p5-black text-p5-white relative group border-l-8 border-p5-yellow"
-                  >
-                    <div className="absolute inset-0 bg-p5-purple opacity-0 group-hover:opacity-30 transition-opacity" />
-                    <div className="flex-1 p5-skew-left">
-                      <p className="font-display text-3xl uppercase italic leading-none">
-                        <span className="text-p5-purple group-hover:text-p5-white transition-colors">{t_item.from}</span>
-                        <span className="mx-4 text-p5-white text-xl opacity-50">{t.pays}</span>
-                        <span className="text-p5-yellow group-hover:text-p5-white transition-colors">{t_item.to}</span>
-                      </p>
+            <div className="space-y-4">
+              {transactions.map((t_item, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  className="flex items-center justify-between p-4 bg-white/5 border-white/20 border-[2px] group hover:bg-white/10 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-p5-purple border-white border-2 flex items-center justify-center font-display text-xl italic">
+                      {t_item.from[0].toUpperCase()}
                     </div>
-                    <div className="flex items-center gap-4 p5-skew-left">
-                      <ArrowRight size={24} className="text-p5-white group-hover:translate-x-2 transition-transform" />
-                      <span className="font-bebas text-6xl text-p5-white p5-text-white-shadow drop-shadow-[4px_4px_0_rgba(177,156,217,0.8)]">${t_item.amount.toLocaleString()}</span>
+                    <div>
+                      <p className="font-black uppercase tracking-tight text-p5-cyan">{t_item.from}</p>
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-white/50">{t.pays} <span className="text-white">{t_item.to}</span></p>
                     </div>
-                  </motion.div>
-                ))}
-                
-                {transactions.length === 0 && people.length > 0 && (
-                  <div className="text-center py-12">
-                    {calculationMode === 'items' && Math.abs(totals.discrepancy) > 0.01 ? (
-                      <div className="space-y-6">
-                        <motion.div 
-                          animate={{ rotate: [0, 10, -10, 0] }}
-                          transition={{ repeat: Infinity, duration: 2 }}
-                          className="w-20 h-20 bg-p5-yellow text-p5-black rounded-full flex items-center justify-center mx-auto border-4 border-p5-black"
-                        >
-                          <AlertCircle size={40} />
-                        </motion.div>
-                        <p className="font-marker text-2xl text-p5-purple max-w-xs mx-auto leading-tight">
-                          {t.discrepancyWarning}
-                        </p>
-                        <button 
-                          onClick={() => setCalculationMode('paid')}
-                          className="p5-button text-xl"
-                        >
-                          {t.settleBasedOn} {t.actualPaid}
-                        </button>
-                      </div>
-                    ) : (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="space-y-4"
-                      >
-                        <div className="w-24 h-24 bg-emerald-500 text-p5-white flex items-center justify-center mx-auto border-8 border-p5-black rotate-12 shadow-[8px_8px_0px_#000]">
-                          <CheckCircle2 size={48} />
-                        </div>
-                        <p className="font-display text-3xl uppercase italic tracking-tighter">{t.allSettled}</p>
-                      </motion.div>
-                    )}
                   </div>
-                )}
-                
-                {people.length === 0 && (
-                  <p className="text-center font-marker text-2xl text-zinc-400">{t.addPeopleToSee}</p>
-                )}
-              </div>
+                  <div className="text-right">
+                    <p className="text-3xl font-display italic tracking-tighter text-p5-yellow">${t_item.amount.toLocaleString()}</p>
+                  </div>
+                </motion.div>
+              ))}
+              
+              {transactions.length === 0 && people.length > 0 && (
+                <div className="text-center py-12">
+                  {calculationMode === 'items' && Math.abs(totals.discrepancy) > 0.01 ? (
+                    <div className="space-y-6">
+                      <div className="w-20 h-20 bg-p5-yellow/10 border-p5-yellow border-2 flex items-center justify-center mx-auto animate-p5-glitch">
+                        <AlertCircle size={40} className="text-p5-yellow" />
+                      </div>
+                      <p className="font-mono text-xs uppercase tracking-widest text-white/60 max-w-xs mx-auto leading-relaxed">
+                        {t.discrepancyWarning}
+                      </p>
+                      <button 
+                        onClick={() => setCalculationMode('paid')}
+                        className="p5-button bg-p5-yellow text-black border-white"
+                      >
+                        {t.settleBasedOn} {t.actualPaid}
+                      </button>
+                    </div>
+                  ) : (
+                    <motion.div
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="space-y-6"
+                    >
+                      <div className="w-20 h-20 bg-p5-green/20 text-p5-green border-p5-green border-2 flex items-center justify-center mx-auto">
+                        <CheckCircle2 size={40} />
+                      </div>
+                      <p className="text-3xl font-display italic tracking-tighter text-p5-green uppercase">{t.allSettled}</p>
+                    </motion.div>
+                  )}
+                </div>
+              )}
+              
+              {people.length === 0 && (
+                <p className="text-center py-12 font-mono text-xs uppercase tracking-[0.3em] text-white/20">{t.addPeopleToSee}</p>
+              )}
             </div>
           </section>
         </div>
       </main>
 
-      <footer className="relative z-10 max-w-5xl mx-auto px-4 py-16 border-t-4 border-p5-purple mt-20">
-        <div className="flex flex-col items-center gap-4">
-          <div className="p5-card px-8 py-2 bg-p5-black text-p5-white -rotate-2">
-            <p className="font-display text-xl uppercase italic tracking-widest">
-              {t.title} &bull; {t.builtWith}
-            </p>
-          </div>
-          <p className="font-marker text-p5-purple-dark">TAKE YOUR TIME</p>
-        </div>
+      <footer className="max-w-6xl mx-auto px-4 py-12 border-t-[3px] border-black mt-12 text-center bg-white p5-jagged-border">
+        <p className="font-mono text-[10px] font-black uppercase tracking-[0.3em] text-black/40">
+          {t.title} &bull; {t.builtWith}
+        </p>
       </footer>
 
       {/* Hidden Share Card for Image Generation */}
       <div className="fixed left-[-9999px] top-0">
         <div 
           ref={shareRef}
-          className="w-[600px] p-10 bg-p5-white text-p5-black font-sans relative overflow-hidden"
-          style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(0,0,0,0.05) 1px, transparent 0)', backgroundSize: '24px 24px' }}
+          className="w-[600px] p-10 bg-[#f0f0f0] text-black font-sans relative overflow-hidden"
+          style={{ backgroundColor: '#f0f0f0' }}
         >
-          {/* Decorative Elements */}
-          <div className="absolute top-0 left-0 w-full h-4 bg-p5-purple" />
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-p5-purple rotate-12 p5-halftone opacity-20" />
-          <div className="absolute bottom-0 right-0 w-full h-4 bg-p5-black" />
-          
+          {/* Background pattern for share image */}
+          <div className="absolute inset-0 opacity-10 pointer-events-none">
+             <div className="absolute top-0 left-0 w-full h-full" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+          </div>
+
           <div className="relative z-10 space-y-8">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-p5-black text-p5-white flex items-center justify-center border-2 border-p5-white shadow-[2px_2px_0_rgba(0,0,0,0.5)] rotate-6">
-                <Calculator size={24} />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-p5-purple border-black border-[3px] flex items-center justify-center text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <Calculator size={28} />
+                </div>
+                <h1 className="font-display text-3xl uppercase italic tracking-tighter">{t.title}</h1>
               </div>
-              <h1 className="font-display text-4xl uppercase italic tracking-tighter text-p5-black">
-                {t.title}
-              </h1>
+              <p className="font-mono text-[10px] font-black uppercase tracking-widest text-black/40">{new Date().toLocaleDateString()}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-6">
-              <div className="p-6 bg-p5-purple text-p5-white border-4 border-p5-black shadow-[4px_4px_0_#000]">
-                <p className="font-display text-xs uppercase italic mb-1">{t.totalCost}</p>
-                <p className="font-bebas text-4xl">${totals.totalCost.toLocaleString()}</p>
+              <div className="bg-p5-purple p-8 border-black border-[3px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-white">
+                <p className="font-mono text-[10px] font-black uppercase tracking-widest mb-2 text-white/70">{t.totalCost}</p>
+                <p className="text-4xl font-display italic tracking-tighter">${totals.totalCost.toLocaleString()}</p>
               </div>
-              <div className="p-6 bg-p5-black text-p5-white border-4 border-p5-purple shadow-[4px_4px_0_var(--color-p5-purple)]">
-                <p className="font-display text-xs uppercase italic text-p5-purple mb-1">{t.costPerPerson}</p>
-                <p className="font-bebas text-4xl">${Math.round(totals.costEach).toLocaleString()}</p>
+              <div className="bg-p5-cyan p-8 border-black border-[3px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-black">
+                <p className="font-mono text-[10px] font-black uppercase tracking-widest mb-2 text-black/60">{t.costPerPerson}</p>
+                <p className="text-4xl font-display italic tracking-tighter">${Math.round(totals.costEach).toLocaleString()}</p>
               </div>
             </div>
 
-            <div className="p-6 bg-p5-white border-4 border-p5-black relative">
-              <div className="absolute -top-4 -left-2 bg-p5-black text-p5-white px-4 py-1 text-xs font-display uppercase italic">
+            <div className="bg-white border-black border-[3px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8">
+              <h2 className="font-mono text-[10px] font-black uppercase tracking-[0.2em] text-black/50 mb-6 border-b-2 border-black/10 pb-2">
                 {t.suggestedTransactions}
-              </div>
-              <div className="space-y-4 pt-2">
+              </h2>
+              <div className="space-y-4">
                 {transactions.map((t_item, i) => (
-                  <div key={i} className="flex items-center justify-between border-b-2 border-p5-black/10 pb-2">
-                    <p className="font-display text-lg uppercase italic">
-                      <span className="text-p5-purple-dark">{t_item.from}</span>
-                      <span className="mx-2 text-xs opacity-50">{t.pays}</span>
-                      <span className="text-p5-black">{t_item.to}</span>
+                  <div key={i} className="flex items-center justify-between border-b-2 border-black/5 pb-4 last:border-0 last:pb-0">
+                    <p className="font-black uppercase tracking-tight text-lg">
+                      <span className="text-p5-purple">{t_item.from}</span>
+                      <span className="mx-3 font-mono text-[10px] text-black/30 font-normal uppercase tracking-widest">{t.pays}</span>
+                      <span className="text-black">{t_item.to}</span>
                     </p>
-                    <span className="font-bebas text-2xl">${t_item.amount.toLocaleString()}</span>
+                    <span className="text-3xl font-display italic tracking-tighter text-black">${t_item.amount.toLocaleString()}</span>
                   </div>
                 ))}
                 {transactions.length === 0 && (
-                  <p className="text-center font-marker text-p5-purple py-4">{t.allSettled}</p>
+                  <p className="text-center text-black/30 font-mono text-xs uppercase tracking-widest py-8 italic">{t.allSettled}</p>
                 )}
               </div>
             </div>
 
-            <div className="flex justify-between items-end">
-              <p className="font-marker text-p5-purple-dark text-sm">Spending Splitter &bull; {new Date().toLocaleDateString()}</p>
-              <div className="w-16 h-16 p5-halftone opacity-20" />
+            <div className="text-center pt-4">
+              <p className="font-mono text-[9px] text-black/30 font-black tracking-[0.4em] uppercase">Spending Splitter Summary &bull; 90s Edition</p>
             </div>
           </div>
         </div>

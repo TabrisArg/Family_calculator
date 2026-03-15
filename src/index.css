@@ -1,102 +1,77 @@
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Permanent+Marker&family=Inter:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Anton", sans-serif;
-  --font-marker: "Permanent Marker", cursive;
-  --font-bebas: "Bebas Neue", sans-serif;
-  
-  --color-p5-purple: #b19cd9;
-  --color-p5-purple-dark: #5a3e8c;
-  --color-p5-black: #3d3d3d;
-  --color-p5-white: #fdfcf0;
-  --color-p5-yellow: #ffffba;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --color-p5-purple: #b026ff;
+  --color-p5-cyan: #00f3ff;
+  --color-p5-yellow: #fff01f;
+  --color-p5-pink: #ff00ff;
+  --color-p5-green: #39ff14;
 }
 
 @layer base {
+  :root {
+    --theme-radius: 0px;
+    --theme-border-width: 3px;
+    --theme-shadow: 6px 6px 0px #000000;
+  }
+
   body {
-    @apply bg-p5-white text-p5-black overflow-x-hidden;
-    background-image: radial-gradient(circle at 2px 2px, rgba(0,0,0,0.05) 1px, transparent 0);
-    background-size: 24px 24px;
+    @apply bg-[#f0f0f0] text-black antialiased;
+    background-image: radial-gradient(#000000 1px, transparent 1px);
+    background-size: 20px 20px;
   }
 }
 
 @layer components {
-  .p5-text-white-shadow {
-    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.8), -1px -1px 0px rgba(0, 0, 0, 0.8);
+  .p5-card {
+    @apply bg-white border-black border-[3px] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all;
+    border-radius: var(--theme-radius);
   }
-  .p5-skew-left {
-    transform: skewX(-6deg);
+
+  .p5-card:hover {
+    @apply translate-x-[-2px] translate-y-[-2px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)];
   }
   
-  .p5-skew-right {
-    transform: skewX(6deg);
-  }
-
-  .p5-card {
-    @apply bg-p5-white text-p5-black relative border-4 border-p5-black;
-    box-shadow: 8px 8px 0px var(--color-p5-purple);
-    /* Removed clip-path to prevent cutting titles */
-  }
-
-  .p5-card-purple {
-    @apply bg-p5-purple text-p5-white relative border-4 border-p5-black;
-    box-shadow: 8px 8px 0px var(--color-p5-black);
-  }
-
   .p5-button {
-    @apply bg-p5-black text-p5-white font-display uppercase tracking-widest px-6 py-2 transition-all relative overflow-hidden;
-    clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+    @apply bg-p5-purple text-white border-black border-[3px] px-6 py-2 font-black uppercase tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:grayscale;
+    font-family: var(--font-display);
   }
-
-  .p5-button:hover {
-    @apply bg-p5-purple text-p5-black;
-    transform: scale(1.05) rotate(-1deg);
-  }
-
-  .p5-button-yellow {
-    @apply bg-p5-yellow text-p5-black font-display uppercase tracking-widest px-6 py-2 transition-all relative overflow-hidden;
-    clip-path: polygon(0% 0%, 90% 0%, 100% 100%, 10% 100%);
-  }
-
-  .p5-button-yellow:hover {
-    @apply bg-p5-white text-p5-black;
-    transform: scale(1.05) rotate(1deg);
+  
+  .p5-button-secondary {
+    @apply bg-white text-black border-black border-[3px] px-6 py-2 font-black uppercase tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none;
+    font-family: var(--font-display);
   }
 
   .p5-input {
-    @apply bg-p5-white border-b-4 border-p5-black text-p5-black font-bebas text-xl px-2 py-1 focus:outline-none focus:border-p5-purple transition-colors;
-    clip-path: polygon(0% 0%, 100% 0%, 98% 100%, 2% 100%);
+    @apply w-full bg-white border-black border-[3px] px-4 py-2 font-bold focus:outline-none focus:bg-p5-yellow/10 transition-all;
+    border-radius: var(--theme-radius);
   }
 
   .p5-header-text {
-    @apply font-display text-4xl uppercase italic tracking-tighter text-p5-white;
-    text-shadow: 3px 3px 0px var(--color-p5-black), 6px 6px 0px rgba(0,0,0,0.2);
+    @apply font-display text-4xl uppercase italic tracking-tighter text-black;
+    text-shadow: 3px 3px 0px var(--color-p5-cyan);
+  }
+
+  .p5-label {
+    @apply font-mono text-xs font-bold uppercase tracking-widest text-black/60 mb-1 block;
   }
 
   .p5-halftone {
-    background-image: radial-gradient(var(--color-p5-black) 20%, transparent 20%);
-    background-size: 6px 6px;
-  }
-
-  .p5-halftone-purple {
-    background-image: radial-gradient(var(--color-p5-purple) 20%, transparent 20%);
-    background-size: 8px 8px;
+    background-image: radial-gradient(currentColor 1px, transparent 1px);
+    background-size: 4px 4px;
   }
 
   .p5-jagged-border {
     clip-path: polygon(
-      0% 10%, 5% 0%, 95% 5%, 100% 15%, 
-      98% 90%, 90% 100%, 10% 95%, 0% 85%
+      0% 0%, 5% 2%, 10% 0%, 15% 3%, 20% 0%, 25% 2%, 30% 0%, 35% 3%, 40% 0%, 45% 2%, 50% 0%, 55% 3%, 60% 0%, 65% 2%, 70% 0%, 75% 3%, 80% 0%, 85% 2%, 90% 0%, 95% 3%, 100% 0%,
+      100% 100%, 95% 97%, 90% 100%, 85% 98%, 80% 100%, 75% 97%, 70% 100%, 65% 98%, 60% 100%, 55% 97%, 50% 100%, 45% 98%, 40% 100%, 35% 97%, 30% 100%, 25% 98%, 20% 100%, 15% 97%, 10% 100%, 5% 98%, 0% 100%
     );
   }
-}
-
-@keyframes p5-float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-3px) rotate(-0.5deg); }
-  75% { transform: translateY(3px) rotate(0.5deg); }
 }
 
 @keyframes p5-glitch {
@@ -109,14 +84,5 @@
 }
 
 .animate-p5-glitch {
-  animation: p5-glitch 0.2s ease-in-out infinite;
-  animation-play-state: paused;
-}
-
-.animate-p5-glitch:hover {
-  animation-play-state: running;
-}
-
-.animate-p5-float {
-  animation: p5-float 3s ease-in-out infinite;
+  animation: p5-glitch 0.2s infinite;
 }
