@@ -4,8 +4,9 @@
  */
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Plus, Trash2, User, DollarSign, ArrowRight, Calculator, AlertCircle, CheckCircle2, Languages, Check, X, Info } from 'lucide-react';
+import { Plus, Trash2, User, DollarSign, ArrowRight, Calculator, AlertCircle, CheckCircle2, Languages, Check, X, Info, Share2, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { toPng } from 'html-to-image';
 
 interface CostItem {
   id: string;
@@ -59,7 +60,12 @@ const translations = {
     itemsTotal: "Total de Artículos",
     actualPaid: "Total Pagado Real",
     discrepancyWarning: "No se pueden calcular transacciones porque nadie ha pagado más que el costo promedio. Prueba a usar 'Total Pagado Real' o aumenta los aportes.",
-    syncContributions: "Sincronizar aportes con artículos"
+    syncContributions: "Sincronizar aportes con artículos",
+    share: "Compartir Resumen",
+    sharing: "Generando...",
+    shareSuccess: "¡Imagen lista!",
+    summaryFor: "Resumen para",
+    settlementSummary: "Resumen de Liquidación"
   },
   en: {
     title: "Spending Splitter",
@@ -91,7 +97,12 @@ const translations = {
     itemsTotal: "Items Total",
     actualPaid: "Actual Paid Total",
     discrepancyWarning: "Transactions can't be calculated because no one has paid more than the average cost. Try using 'Actual Paid Total' or increase contributions.",
-    syncContributions: "Sync contributions with items"
+    syncContributions: "Sync contributions with items",
+    share: "Share Summary",
+    sharing: "Generating...",
+    shareSuccess: "Image ready!",
+    summaryFor: "Summary for",
+    settlementSummary: "Settlement Summary"
   }
 };
 
@@ -115,6 +126,8 @@ export default function App() {
   const [newPersonName, setNewPersonName] = useState('');
   const [newPersonPaid, setNewPersonPaid] = useState('');
   const [calculationMode, setCalculationMode] = useState<'items' | 'paid'>('items');
+  const [isSharing, setIsSharing] = useState(false);
+  const shareRef = useRef<HTMLDivElement>(null);
 
   // Editing state
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -201,10 +214,6 @@ export default function App() {
     
     setCostItems([...costItems, newItem]);
     
-    if (selectedPayerId) {
-      setPeople(people.map(p => p.id === selectedPayerId ? { ...p, paid: p.paid + amount } : p));
-    }
-    
     setNewCostName('');
     setNewCostAmount('');
     setSelectedPayerId('');
@@ -223,10 +232,6 @@ export default function App() {
   };
 
   const removeCost = (id: string) => {
-    const item = costItems.find(i => i.id === id);
-    if (item?.paidById) {
-      setPeople(people.map(p => p.id === item.paidById ? { ...p, paid: Math.max(0, p.paid - item.amount) } : p));
-    }
     setCostItems(costItems.filter(i => i.id !== id));
   };
 
@@ -246,10 +251,6 @@ export default function App() {
       setPeople(people.map(person => person.id === editingId ? { ...person, name: editValue } : person));
     } else if (editingField === 'amount') {
       const newAmount = parseFloat(editValue) || 0;
-      const oldItem = costItems.find(i => i.id === editingId);
-      if (oldItem?.paidById) {
-        setPeople(people.map(p => p.id === oldItem.paidById ? { ...p, paid: p.paid - oldItem.amount + newAmount } : p));
-      }
       setCostItems(costItems.map(item => item.id === editingId ? { ...item, amount: newAmount } : item));
     } else if (editingField === 'paid') {
       setPeople(people.map(person => person.id === editingId ? { ...person, paid: parseFloat(editValue) || 0 } : person));
@@ -278,6 +279,41 @@ export default function App() {
       }
     });
     setPeople(newPeople);
+  };
+  
+  const handleShare = async () => {
+    if (!shareRef.current) return;
+    setIsSharing(true);
+    try {
+      // Small delay to ensure any animations settle
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const dataUrl = await toPng(shareRef.current, {
+        quality: 0.95,
+        backgroundColor: '#fdfcf0', // p5-white
+        cacheBust: true,
+      });
+      
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], 'spending-summary.png', { type: 'image/png' });
+
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: t.title,
+          text: t.settlementSummary,
+        });
+      } else {
+        const link = document.createElement('a');
+        link.download = 'spending-summary.png';
+        link.href = dataUrl;
+        link.click();
+      }
+    } catch (err) {
+      console.error('Error sharing:', err);
+    } finally {
+      setIsSharing(false);
+    }
   };
 
   return (
@@ -310,6 +346,16 @@ export default function App() {
           </div>
           
           <div className="flex items-center gap-6">
+            <button
+              onClick={handleShare}
+              disabled={isSharing}
+              className="flex items-center gap-2 bg-p5-black text-p5-white px-4 py-2 border-2 border-p5-white hover:bg-p5-purple hover:text-p5-black transition-all disabled:opacity-50"
+            >
+              {isSharing ? <div className="animate-spin h-4 w-4 border-2 border-p5-white border-t-transparent rounded-full" /> : <Share2 size={18} />}
+              <span className="font-display text-sm uppercase tracking-widest hidden sm:inline">
+                {isSharing ? t.sharing : t.share}
+              </span>
+            </button>
             <div className="flex items-center gap-2 bg-p5-black p-1 border-2 border-p5-white">
               <button
                 onClick={() => setLang('es')}
@@ -744,6 +790,68 @@ export default function App() {
           <p className="font-marker text-p5-purple-dark">TAKE YOUR TIME</p>
         </div>
       </footer>
+
+      {/* Hidden Share Card for Image Generation */}
+      <div className="fixed left-[-9999px] top-0">
+        <div 
+          ref={shareRef}
+          className="w-[600px] p-10 bg-p5-white text-p5-black font-sans relative overflow-hidden"
+          style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(0,0,0,0.05) 1px, transparent 0)', backgroundSize: '24px 24px' }}
+        >
+          {/* Decorative Elements */}
+          <div className="absolute top-0 left-0 w-full h-4 bg-p5-purple" />
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-p5-purple rotate-12 p5-halftone opacity-20" />
+          <div className="absolute bottom-0 right-0 w-full h-4 bg-p5-black" />
+          
+          <div className="relative z-10 space-y-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-p5-black text-p5-white flex items-center justify-center border-2 border-p5-white shadow-[2px_2px_0_rgba(0,0,0,0.5)] rotate-6">
+                <Calculator size={24} />
+              </div>
+              <h1 className="font-display text-4xl uppercase italic tracking-tighter text-p5-black">
+                {t.title}
+              </h1>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6">
+              <div className="p-6 bg-p5-purple text-p5-white border-4 border-p5-black shadow-[4px_4px_0_#000]">
+                <p className="font-display text-xs uppercase italic mb-1">{t.totalCost}</p>
+                <p className="font-bebas text-4xl">${totals.totalCost.toLocaleString()}</p>
+              </div>
+              <div className="p-6 bg-p5-black text-p5-white border-4 border-p5-purple shadow-[4px_4px_0_var(--color-p5-purple)]">
+                <p className="font-display text-xs uppercase italic text-p5-purple mb-1">{t.costPerPerson}</p>
+                <p className="font-bebas text-4xl">${Math.round(totals.costEach).toLocaleString()}</p>
+              </div>
+            </div>
+
+            <div className="p-6 bg-p5-white border-4 border-p5-black relative">
+              <div className="absolute -top-4 -left-2 bg-p5-black text-p5-white px-4 py-1 text-xs font-display uppercase italic">
+                {t.suggestedTransactions}
+              </div>
+              <div className="space-y-4 pt-2">
+                {transactions.map((t_item, i) => (
+                  <div key={i} className="flex items-center justify-between border-b-2 border-p5-black/10 pb-2">
+                    <p className="font-display text-lg uppercase italic">
+                      <span className="text-p5-purple-dark">{t_item.from}</span>
+                      <span className="mx-2 text-xs opacity-50">{t.pays}</span>
+                      <span className="text-p5-black">{t_item.to}</span>
+                    </p>
+                    <span className="font-bebas text-2xl">${t_item.amount.toLocaleString()}</span>
+                  </div>
+                ))}
+                {transactions.length === 0 && (
+                  <p className="text-center font-marker text-p5-purple py-4">{t.allSettled}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-between items-end">
+              <p className="font-marker text-p5-purple-dark text-sm">Spending Splitter &bull; {new Date().toLocaleDateString()}</p>
+              <div className="w-16 h-16 p5-halftone opacity-20" />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
