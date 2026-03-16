@@ -6,59 +6,60 @@
   --font-display: "Anton", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
-  --color-p5-purple: #b026ff;
-  --color-p5-cyan: #00f3ff;
-  --color-p5-yellow: #fff01f;
-  --color-p5-pink: #ff00ff;
-  --color-p5-green: #39ff14;
+  --color-p5-purple: #D1C4E9;
+  --color-p5-cyan: #B2EBF2;
+  --color-p5-yellow: #FFF9C4;
+  --color-p5-pink: #F8BBD0;
+  --color-p5-green: #C8E6C9;
 }
 
 @layer base {
   :root {
-    --theme-radius: 0px;
-    --theme-border-width: 3px;
-    --theme-shadow: 6px 6px 0px #000000;
+    --theme-radius: 12px;
+    --theme-border-width: 2px;
+    --theme-shadow: 4px 4px 0px rgba(0,0,0,0.1);
   }
 
   body {
-    @apply bg-[#f0f0f0] text-black antialiased;
-    background-image: radial-gradient(#000000 1px, transparent 1px);
-    background-size: 20px 20px;
+    @apply bg-[#fdfbf7] text-slate-800 antialiased;
+    background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+    background-size: 24px 24px;
   }
 }
 
 @layer components {
   .p5-card {
-    @apply bg-white border-black border-[3px] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all;
+    @apply bg-white border-slate-300 border-[2px] shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)] transition-all;
     border-radius: var(--theme-radius);
   }
 
   .p5-card:hover {
-    @apply translate-x-[-2px] translate-y-[-2px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)];
+    @apply translate-x-[-1px] translate-y-[-1px] shadow-[6px_6px_0px_0px_rgba(0,0,0,0.08)];
   }
   
   .p5-button {
-    @apply bg-p5-purple text-white border-black border-[3px] px-6 py-2 font-black uppercase tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:grayscale;
+    @apply bg-p5-purple text-slate-800 border-slate-400 border-[2px] px-6 py-2 font-black uppercase tracking-[0.2em] shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)] transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:opacity-50 disabled:grayscale;
     font-family: var(--font-display);
   }
   
   .p5-button-secondary {
-    @apply bg-white text-black border-black border-[3px] px-6 py-2 font-black uppercase tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none;
+    @apply bg-white text-slate-800 border-slate-400 border-[2px] px-6 py-2 font-black uppercase tracking-[0.2em] shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)] transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-none;
     font-family: var(--font-display);
   }
 
   .p5-input {
-    @apply w-full bg-white border-black border-[3px] px-4 py-2 font-bold focus:outline-none focus:bg-p5-yellow/10 transition-all placeholder:text-black/50;
+    @apply w-full bg-white border-slate-300 border-[2px] px-4 py-2 font-bold focus:outline-none focus:border-p5-purple focus:bg-p5-yellow/5 transition-all placeholder:text-slate-400;
     border-radius: var(--theme-radius);
   }
 
   .p5-header-text {
-    @apply font-display text-4xl uppercase italic tracking-tighter text-black;
-    text-shadow: 3px 3px 0px var(--color-p5-cyan);
+    @apply font-display text-4xl uppercase italic tracking-normal text-slate-800;
+    text-shadow: 2px 2px 0px var(--color-p5-cyan);
   }
 
   .p5-label {
-    @apply font-mono text-xs font-black uppercase tracking-widest text-black mb-1 block;
+    @apply font-mono text-xs font-black uppercase tracking-widest text-slate-600 mb-1 block;
+    text-shadow: 0.5px 0.5px 0px rgba(255,255,255,0.8);
   }
 
   .p5-halftone {

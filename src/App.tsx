@@ -4,9 +4,12 @@
  */
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Plus, Trash2, User, DollarSign, ArrowRight, Calculator, AlertCircle, CheckCircle2, Languages, Check, X, Info, Share2, Download, Palette } from 'lucide-react';
+import { Plus, Trash2, User, DollarSign, ArrowRight, Calculator, AlertCircle, CheckCircle2, Languages, Check, X, Info, Share2, Download, Palette, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toPng } from 'html-to-image';
+import { themeConfig } from './themeConfig';
+import { adminSettings } from './adminSettings';
+import { AdminPanel } from './components/AdminPanel';
 
 interface CostItem {
   id: string;
@@ -47,6 +50,11 @@ const translations = {
     netBalance: "Balance Neto",
     suggestedTransactions: "Transacciones Sugeridas",
     pays: "paga a",
+    debtor: "Deudor",
+    creditor: "Acreedor",
+    to: "a",
+    amountLabel: "Monto",
+    pastelEdition: "Edición Pastel",
     allSettled: "¡Todo liquidado! No se necesitan transacciones.",
     noItems: "No se han añadido artículos aún",
     noPeople: "No se han añadido personas aún",
@@ -66,6 +74,8 @@ const translations = {
     shareSuccess: "¡Imagen lista!",
     summaryFor: "Resumen para",
     settlementSummary: "Resumen de Liquidación",
+    clearPeople: "Borrar Personas",
+    clearItems: "Borrar Artículos",
   },
   en: {
     title: "Spending Splitter",
@@ -84,6 +94,11 @@ const translations = {
     netBalance: "Net Balance",
     suggestedTransactions: "Suggested Transactions",
     pays: "pays",
+    debtor: "Debtor",
+    creditor: "Creditor",
+    to: "to",
+    amountLabel: "Amount",
+    pastelEdition: "Pastel Edition",
     allSettled: "All settled! No transactions needed.",
     noItems: "No items added yet",
     noPeople: "No people added yet",
@@ -103,22 +118,40 @@ const translations = {
     shareSuccess: "Image ready!",
     summaryFor: "Summary for",
     settlementSummary: "Settlement Summary",
+    clearPeople: "Clear People",
+    clearItems: "Clear Items",
   }
 };
 
 export default function App() {
-  const [lang, setLang] = useState<Language>('es');
+  const [currentTheme, setCurrentTheme] = useState(() => {
+    const saved = localStorage.getItem('splitter_theme_config');
+    return saved ? JSON.parse(saved) : themeConfig;
+  });
+
+  const [currentAdmin, setCurrentAdmin] = useState(() => {
+    const saved = localStorage.getItem('splitter_admin_config');
+    return saved ? JSON.parse(saved) : adminSettings;
+  });
+
+  const [lang, setLang] = useState<Language>(() => {
+    const saved = localStorage.getItem('splitter_lang');
+    if (saved) return saved as Language;
+    return currentAdmin.defaultLanguage;
+  });
   const t = translations[lang];
 
-  const [costItems, setCostItems] = useState<CostItem[]>([
-    { id: '1', name: 'cosa 1', amount: 1870 },
-    { id: '2', name: 'cosa 2', amount: 500 },
-  ]);
+  const [costItems, setCostItems] = useState<CostItem[]>(() => {
+    const saved = localStorage.getItem('splitter_cost_items');
+    return saved ? JSON.parse(saved) : currentAdmin.defaultCostItems;
+  });
 
-  const [people, setPeople] = useState<Person[]>([
-    { id: '1', name: 'person 1', paid: 500 },
-    { id: '2', name: 'person 2', paid: 1870 },
-  ]);
+  const [people, setPeople] = useState<Person[]>(() => {
+    const saved = localStorage.getItem('splitter_people');
+    return saved ? JSON.parse(saved) : currentAdmin.defaultPeople;
+  });
+
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
 
   const [newCostName, setNewCostName] = useState('');
   const [newCostAmount, setNewCostAmount] = useState('');
@@ -133,6 +166,21 @@ export default function App() {
   const [editingField, setEditingField] = useState<'name' | 'amount' | 'paid' | null>(null);
   const [editValue, setEditValue] = useState<string>('');
   const editInputRef = useRef<HTMLInputElement>(null);
+  // Persistence
+  useEffect(() => {
+    localStorage.setItem('splitter_people', JSON.stringify(people));
+    localStorage.setItem('splitter_cost_items', JSON.stringify(costItems));
+    localStorage.setItem('splitter_lang', lang);
+  }, [people, costItems, lang]);
+
+  const handleAdminApply = (newTheme: any, newAdmin: any) => {
+    setCurrentTheme(newTheme);
+    setCurrentAdmin(newAdmin);
+    // If language was changed in admin, update it if it matches the old default
+    if (newAdmin.defaultLanguage !== currentAdmin.defaultLanguage) {
+      setLang(newAdmin.defaultLanguage);
+    }
+  };
 
   useEffect(() => {
     if (editingId && editInputRef.current) {
@@ -140,6 +188,14 @@ export default function App() {
       editInputRef.current.select();
     }
   }, [editingId]);
+
+  const handleClearPeople = () => {
+    setPeople([]);
+  };
+
+  const handleClearItems = () => {
+    setCostItems([]);
+  };
 
   const totals = useMemo(() => {
     const totalCost = costItems.reduce((sum, item) => sum + item.amount, 0);
@@ -200,10 +256,15 @@ export default function App() {
     return { transactions, balances };
   }, [people, totals.costEach]);
 
+  const roundToNearest500 = (num: number) => {
+    if (num <= 0) return 0;
+    return Math.max(500, Math.round(num / 500) * 500);
+  };
+
   const addCost = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCostName || !newCostAmount) return;
-    const amount = parseFloat(newCostAmount);
+    const amount = roundToNearest500(parseFloat(newCostAmount));
     const newItem: CostItem = {
       id: crypto.randomUUID(),
       name: newCostName,
@@ -221,10 +282,11 @@ export default function App() {
   const addPerson = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPersonName) return;
+    const paid = roundToNearest500(parseFloat(newPersonPaid || '0'));
     setPeople([...people, {
       id: crypto.randomUUID(),
       name: newPersonName,
-      paid: parseFloat(newPersonPaid || '0')
+      paid
     }]);
     setNewPersonName('');
     setNewPersonPaid('');
@@ -249,10 +311,11 @@ export default function App() {
       setCostItems(costItems.map(item => item.id === editingId ? { ...item, name: editValue } : item));
       setPeople(people.map(person => person.id === editingId ? { ...person, name: editValue } : person));
     } else if (editingField === 'amount') {
-      const newAmount = parseFloat(editValue) || 0;
+      const newAmount = roundToNearest500(parseFloat(editValue) || 0);
       setCostItems(costItems.map(item => item.id === editingId ? { ...item, amount: newAmount } : item));
     } else if (editingField === 'paid') {
-      setPeople(people.map(person => person.id === editingId ? { ...person, paid: parseFloat(editValue) || 0 } : person));
+      const newPaid = roundToNearest500(parseFloat(editValue) || 0);
+      setPeople(people.map(person => person.id === editingId ? { ...person, paid: newPaid } : person));
     }
 
     setEditingId(null);
@@ -316,6 +379,89 @@ export default function App() {
 
   return (
     <div className="min-h-screen selection:bg-p5-yellow selection:text-black">
+      <style>{`
+        :root {
+          --main-text: ${currentTheme.mainTextColor};
+          --muted-text: ${currentTheme.mutedTextColor};
+          --sync-text: ${currentTheme.syncContributionsTextColor};
+          --footer-text: ${currentTheme.footerTextColor};
+          
+          --header-title: ${currentTheme.headerTitleColor};
+          --header-title-shadow: ${currentTheme.headerTitleShadow};
+          --header-icon-color: ${currentTheme.headerIconColor};
+          --header-icon-bg: ${currentTheme.headerIconBg};
+          
+          --section-header: ${currentTheme.sectionHeaderTextColor};
+          --section-header-shadow: ${currentTheme.sectionHeaderShadowColor};
+          --section-icon: ${currentTheme.sectionIconColor};
+          
+          --form-label: ${currentTheme.formLabelColor};
+          --form-input: ${currentTheme.formInputTextColor};
+          --button-text: ${currentTheme.buttonTextColor};
+          --button-text-shadow: ${currentTheme.buttonTextShadow};
+          
+          --person-name: ${currentTheme.personNameColor};
+          --person-paid: ${currentTheme.personPaidColor};
+          --person-paid-label: ${currentTheme.personPaidLabelColor};
+          --person-remove: ${currentTheme.personRemoveIconColor};
+          
+          --cost-items-bg: ${currentTheme.costItemsCardBg};
+          --cost-item-name: ${currentTheme.costItemNameColor};
+          --cost-item-amount: ${currentTheme.costItemAmountColor};
+          --cost-item-paid-by: ${currentTheme.costItemPaidByColor};
+          --cost-item-label: ${currentTheme.costItemLabelColor};
+          --cost-item-remove: ${currentTheme.costItemRemoveIconColor};
+          
+          --table-header-bg: ${currentTheme.tableHeaderBg};
+          --table-header-text: ${currentTheme.tableHeaderTextColor};
+          --table-name: ${currentTheme.tableNameColor};
+          --table-paid: ${currentTheme.tablePaidColor};
+          --table-net-pos: ${currentTheme.tableNetPositiveColor};
+          --table-net-neg: ${currentTheme.tableNetNegativeColor};
+          --table-net-neu: ${currentTheme.tableNetNeutralColor};
+          --table-net-shadow: ${currentTheme.tableNetShadow};
+          
+          --trans-bg: ${currentTheme.transactionsCardBg};
+          --trans-header: ${currentTheme.transactionsHeaderColor};
+          --trans-header-shadow: ${currentTheme.transactionsHeaderShadow};
+          --trans-debtor: ${currentTheme.transactionDebtorLabel};
+          --trans-creditor: ${currentTheme.transactionCreditorLabel};
+          --trans-pays: ${currentTheme.transactionPaysLabel};
+          --trans-to: ${currentTheme.transactionToLabel};
+          --trans-amount: ${currentTheme.transactionAmountColor};
+          --trans-amount-shadow: ${currentTheme.transactionAmountShadow};
+          --trans-name: ${currentTheme.transactionNameColor};
+          --trans-name-shadow: ${currentTheme.transactionNameShadow};
+          
+          --no-people-text: ${currentTheme.noPeopleTextColor};
+          --add-people-text: ${currentTheme.addPeopleToSeeTextColor};
+          --discrepancy-text: ${currentTheme.discrepancyWarningTextColor};
+          --all-settled-text: ${currentTheme.allSettledTextColor};
+          
+          --total-cost-bg: ${currentTheme.totalCostCardBg};
+          --total-cost-label: ${currentTheme.totalCostLabelColor};
+          --total-cost-value: ${currentTheme.totalCostValueColor};
+          --cpp-bg: ${currentTheme.costPerPersonCardBg};
+          --cpp-label: ${currentTheme.costPerPersonLabelColor};
+          --cpp-value: ${currentTheme.costPerPersonValueColor};
+          --summary-shadow: ${currentTheme.summaryCardShadow};
+          
+          --share-bg: ${currentTheme.shareBg};
+          --share-text: ${currentTheme.shareTitleColor};
+          --share-date: ${currentTheme.shareDateColor};
+          --share-stat-label: ${currentTheme.shareStatLabelColor};
+          --share-stat-value: ${currentTheme.shareStatValueColor};
+          --share-section-header: ${currentTheme.shareSectionHeaderColor};
+          --share-item-name: ${currentTheme.shareItemNameColor};
+          --share-pays-label: ${currentTheme.sharePaysLabelColor};
+          --share-amount-label: ${currentTheme.shareAmountLabelColor};
+          --share-amount-value: ${currentTheme.shareAmountValueColor};
+          --share-footer: ${currentTheme.shareFooterColor};
+          --share-shadow: ${currentTheme.shareShadowColor};
+          --share-icon-bg: ${currentTheme.shareIconBg};
+          --share-icon-color: ${currentTheme.shareIconColor};
+        }
+      `}</style>
       {/* Decorative Background Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10 opacity-20">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-p5-cyan rounded-full blur-[120px] animate-pulse" />
@@ -326,13 +472,22 @@ export default function App() {
       <header className="bg-white border-b-[4px] border-black py-6 sticky top-0 z-30 p5-jagged-border shadow-[0px_4px_0px_0px_rgba(0,0,0,1)]">
         <div className="max-w-6xl mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-p5-purple border-black border-[3px] flex items-center justify-center text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div className="w-12 h-12 border-black border-[3px] flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" style={{ backgroundColor: 'var(--header-icon-bg)', color: 'var(--header-icon-color)' }}>
               <Calculator size={28} />
             </div>
-            <h1 className="p5-header-text">{t.title}</h1>
+            <h1 className="p5-header-text" style={{ color: 'var(--header-title)', textShadow: 'var(--header-title-shadow)' }}>{t.title}</h1>
           </div>
           
           <div className="flex items-center gap-4">
+            {currentAdmin.SHOW_ADMIN_PANEL && (
+              <button
+                onClick={() => setIsAdminOpen(true)}
+                className="p-2 hover:bg-black/10 rounded-full transition-colors"
+                title="Admin Panel"
+              >
+                <Settings size={20} className="text-black" />
+              </button>
+            )}
             <div className="flex bg-black p-1">
               <button
                 onClick={() => setLang('es')}
@@ -352,6 +507,7 @@ export default function App() {
               onClick={handleShare}
               disabled={isSharing}
               className="p5-button flex items-center gap-2"
+              style={{ textShadow: '2px 2px 0px rgba(0,0,0,0.5)' }}
             >
               {isSharing ? <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" /> : <Share2 size={18} />}
               <span className="hidden sm:inline">{isSharing ? t.sharing : t.share}</span>
@@ -366,40 +522,52 @@ export default function App() {
           {/* People Section */}
           <section className="p5-card p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-display uppercase italic flex items-center gap-2 text-black">
-                <User size={20} className="text-p5-purple" />
+              <h2 className="text-xl font-display uppercase italic flex items-center gap-2" style={{ color: 'var(--section-header)', textShadow: '2px 2px 0px var(--section-header-shadow)' }}>
+                <User size={20} style={{ color: 'var(--section-icon)' }} />
                 {t.people}
               </h2>
-              <button 
-                onClick={syncContributions}
-                className="text-[10px] font-black uppercase tracking-widest text-p5-purple hover:text-black border-b-2 border-p5-purple transition-colors"
-              >
-                {t.syncContributions}
-              </button>
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={syncContributions}
+                  className="text-[10px] font-black uppercase tracking-widest hover:text-p5-purple border-b-2 transition-colors"
+                  style={{ color: 'var(--sync-text)', borderColor: 'var(--sync-text)' }}
+                >
+                  {t.syncContributions}
+                </button>
+                <button 
+                  onClick={handleClearPeople}
+                  className="text-[10px] font-black uppercase tracking-widest text-rose-600 hover:text-rose-800 border-b-2 border-rose-600 transition-colors flex items-center gap-1"
+                >
+                  <Trash2 size={12} />
+                  {t.clearPeople}
+                </button>
+              </div>
             </div>
             
             <form onSubmit={addPerson} className="flex gap-3 mb-6">
               <div className="flex-1">
-                <label className="p5-label">{t.name}</label>
+                <label className="p5-label" style={{ color: 'var(--form-label)', textShadow: 'none' }}>{t.name}</label>
                 <input
                   type="text"
                   placeholder={t.name}
                   value={newPersonName}
                   onChange={(e) => setNewPersonName(e.target.value)}
                   className="p5-input"
+                  style={{ color: 'var(--form-input)' }}
                 />
               </div>
               <div className="w-28">
-                <label className="p5-label">{t.paid}</label>
+                <label className="p5-label" style={{ color: 'var(--form-label)', textShadow: 'none' }}>{t.paid}</label>
                 <input
                   type="number"
                   placeholder={t.paid}
                   value={newPersonPaid}
                   onChange={(e) => setNewPersonPaid(e.target.value)}
                   className="p5-input"
+                  style={{ color: 'var(--form-input)' }}
                 />
               </div>
-              <button type="submit" className="p5-button self-end h-[46px] w-[46px] flex items-center justify-center p-0">
+              <button type="submit" className="p5-button self-end h-[46px] w-[46px] flex items-center justify-center p-0" style={{ color: 'var(--button-text)', textShadow: 'var(--button-text-shadow)' }}>
                 <Plus size={24} />
               </button>
             </form>
@@ -424,11 +592,13 @@ export default function App() {
                           onBlur={saveEdit}
                           onKeyDown={handleKeyDown}
                           className="w-full bg-p5-yellow/10 border-black border-b-2 px-2 py-1 text-sm focus:outline-none"
+                          style={{ color: 'var(--person-name)' }}
                         />
                       ) : (
                         <span 
                           onClick={() => startEditing(person.id, 'name', person.name)}
-                          className="font-black uppercase tracking-tight text-black cursor-pointer hover:text-p5-purple transition-colors"
+                          className="font-black uppercase tracking-tight cursor-pointer hover:text-p5-purple transition-colors"
+                          style={{ color: 'var(--person-name)' }}
                         >
                           {person.name}
                         </span>
@@ -445,11 +615,13 @@ export default function App() {
                           onBlur={saveEdit}
                           onKeyDown={handleKeyDown}
                           className="w-20 bg-p5-yellow/10 border-black border-b-2 px-2 py-1 text-sm focus:outline-none"
+                          style={{ color: 'var(--person-paid)' }}
                         />
                       ) : (
                         <span 
                           onClick={() => startEditing(person.id, 'paid', person.paid)}
-                          className="font-mono font-bold text-black bg-p5-cyan/20 px-2 py-0.5 cursor-pointer hover:bg-p5-cyan/40 transition-colors"
+                          className="font-mono font-bold bg-p5-cyan/20 px-2 py-0.5 cursor-pointer hover:bg-p5-cyan/40 transition-colors"
+                          style={{ color: 'var(--person-paid)' }}
                         >
                           ${person.paid.toLocaleString()}
                         </span>
@@ -457,7 +629,8 @@ export default function App() {
 
                       <button
                         onClick={() => removePerson(person.id)}
-                        className="text-black/30 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                        className="transition-colors opacity-0 group-hover:opacity-100"
+                        style={{ color: 'var(--person-remove)' }}
                       >
                         <Trash2 size={18} />
                       </button>
@@ -466,46 +639,58 @@ export default function App() {
                 ))}
               </AnimatePresence>
               {people.length === 0 && (
-                <p className="text-center py-4 text-black/40 font-mono text-xs uppercase tracking-widest">{t.noPeople}</p>
+                <p className="text-center py-4 font-mono text-xs uppercase tracking-widest" style={{ color: 'var(--no-people-text)' }}>{t.noPeople}</p>
               )}
             </div>
           </section>
 
           {/* Cost Items Section */}
-          <section className="p5-card p-6">
-            <h2 className="text-xl font-display uppercase italic flex items-center gap-2 text-black mb-6">
-              <DollarSign size={20} className="text-p5-purple" />
-              {t.costItems}
-            </h2>
+          <section className="p5-card p-6" style={{ backgroundColor: 'var(--cost-items-bg)' }}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-display uppercase italic flex items-center gap-2" style={{ color: 'var(--cost-item-name)', textShadow: '2px 2px 0px var(--section-header-shadow)' }}>
+                <DollarSign size={20} style={{ color: 'var(--section-icon)' }} />
+                {t.costItems}
+              </h2>
+              <button 
+                onClick={handleClearItems}
+                className="text-[10px] font-black uppercase tracking-widest text-rose-300 hover:text-rose-100 border-b-2 border-rose-300 transition-colors flex items-center gap-1"
+              >
+                <Trash2 size={12} />
+                {t.clearItems}
+              </button>
+            </div>
             
             <form onSubmit={addCost} className="space-y-4 mb-6">
               <div>
-                <label className="p5-label">{t.itemName}</label>
+                <label className="p5-label" style={{ color: 'var(--cost-item-label)', textShadow: 'none' }}>{t.itemName}</label>
                 <input
                   type="text"
                   placeholder={t.itemName}
                   value={newCostName}
                   onChange={(e) => setNewCostName(e.target.value)}
                   className="p5-input"
+                  style={{ color: 'var(--form-input)' }}
                 />
               </div>
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label className="p5-label">{t.amount}</label>
+                  <label className="p5-label" style={{ color: 'var(--cost-item-label)', textShadow: 'none' }}>{t.amount}</label>
                   <input
                     type="number"
                     placeholder={t.amount}
                     value={newCostAmount}
                     onChange={(e) => setNewCostAmount(e.target.value)}
                     className="p5-input"
+                    style={{ color: 'var(--form-input)' }}
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="p5-label">{t.whoPaid}</label>
+                  <label className="p5-label" style={{ color: 'var(--cost-item-label)', textShadow: 'none' }}>{t.whoPaid}</label>
                   <select
                     value={selectedPayerId}
                     onChange={(e) => setSelectedPayerId(e.target.value)}
                     className="p5-input bg-white cursor-pointer appearance-none"
+                    style={{ color: 'var(--form-input)' }}
                   >
                     <option value="">{t.whoPaid}</option>
                     {people.map(p => (
@@ -514,7 +699,7 @@ export default function App() {
                   </select>
                 </div>
               </div>
-              <button type="submit" className="p5-button w-full flex items-center justify-center gap-2">
+              <button type="submit" className="p5-button w-full flex items-center justify-center gap-2" style={{ color: 'var(--button-text)', textShadow: 'var(--button-text-shadow)' }}>
                 <Plus size={20} />
                 {t.costItems}
               </button>
@@ -528,7 +713,7 @@ export default function App() {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="flex items-center justify-between p-3 bg-white border-black border-[2px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] group"
+                    className="flex items-center justify-between p-3 bg-white/10 border-white/20 border-[2px] shadow-[3px_3px_0px_0px_rgba(0,0,0,0.2)] group"
                   >
                     <div className="flex-1 flex flex-col">
                       {editingId === item.id && editingField === 'name' ? (
@@ -539,18 +724,20 @@ export default function App() {
                           onChange={(e) => setEditValue(e.target.value)}
                           onBlur={saveEdit}
                           onKeyDown={handleKeyDown}
-                          className="w-full bg-p5-yellow/10 border-black border-b-2 px-2 py-1 text-sm focus:outline-none"
+                          className="w-full bg-white/10 border-white/20 border-b-2 px-2 py-1 text-sm focus:outline-none"
+                          style={{ color: 'var(--cost-item-name)' }}
                         />
                       ) : (
                         <span 
                           onClick={() => startEditing(item.id, 'name', item.name)}
-                          className="font-black uppercase tracking-tight text-black cursor-pointer hover:text-p5-purple transition-colors"
+                          className="font-black uppercase tracking-tight cursor-pointer hover:text-p5-purple transition-colors"
+                          style={{ color: 'var(--cost-item-name)' }}
                         >
                           {item.name}
                         </span>
                       )}
                       {item.paidById && (
-                        <span className="font-mono text-[9px] text-black/60 font-black uppercase tracking-tighter">
+                        <span className="font-mono text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--cost-item-paid-by)' }}>
                           {t.paid} <span className="text-p5-purple">{people.find(p => p.id === item.paidById)?.name}</span>
                         </span>
                       )}
@@ -565,12 +752,14 @@ export default function App() {
                           onChange={(e) => setEditValue(e.target.value)}
                           onBlur={saveEdit}
                           onKeyDown={handleKeyDown}
-                          className="w-20 bg-p5-yellow/10 border-black border-b-2 px-2 py-1 text-sm focus:outline-none"
+                          className="w-20 bg-white/10 border-white/20 border-b-2 px-2 py-1 text-sm focus:outline-none"
+                          style={{ color: 'var(--cost-item-amount)' }}
                         />
                       ) : (
                         <span 
                           onClick={() => startEditing(item.id, 'amount', item.amount)}
-                          className="font-mono font-bold text-black bg-p5-pink/20 px-2 py-0.5 cursor-pointer hover:bg-p5-pink/40 transition-colors"
+                          className="font-mono font-bold bg-white/5 px-2 py-0.5 cursor-pointer hover:bg-white/10 transition-colors"
+                          style={{ color: 'var(--cost-item-amount)' }}
                         >
                           ${item.amount.toLocaleString()}
                         </span>
@@ -578,7 +767,8 @@ export default function App() {
                       
                       <button
                         onClick={() => removeCost(item.id)}
-                        className="text-black/30 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                        className="transition-colors opacity-0 group-hover:opacity-100"
+                        style={{ color: 'var(--cost-item-remove)' }}
                       >
                         <Trash2 size={18} />
                       </button>
@@ -587,7 +777,7 @@ export default function App() {
                 ))}
               </AnimatePresence>
               {costItems.length === 0 && (
-                <p className="text-center py-4 text-black/40 font-mono text-xs uppercase tracking-widest">{t.noItems}</p>
+                <p className="text-center py-4 font-mono text-xs uppercase tracking-widest" style={{ color: 'var(--cost-item-label)' }}>{t.noItems}</p>
               )}
             </div>
           </section>
@@ -597,14 +787,14 @@ export default function App() {
         <div className="lg:col-span-7 space-y-8">
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="p5-card p-8 bg-p5-purple text-white border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-              <p className="font-mono text-[10px] font-black uppercase tracking-[0.2em] mb-2 text-white/80">
+            <div className="p5-card p-8 border-black" style={{ backgroundColor: 'var(--total-cost-bg)', color: 'var(--total-cost-value)', shadow: 'var(--summary-shadow)' }}>
+              <p className="font-mono text-[10px] font-black uppercase tracking-[0.2em] mb-2" style={{ color: 'var(--total-cost-label)' }}>
                 {t.totalCost}
               </p>
               <p className="text-5xl font-display italic tracking-tighter">${totals.totalCost.toLocaleString()}</p>
             </div>
-            <div className="p5-card p-8 bg-p5-cyan text-black border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-              <p className="font-mono text-[10px] font-black uppercase tracking-[0.2em] mb-2 text-black/60">{t.costPerPerson}</p>
+            <div className="p5-card p-8 border-black" style={{ backgroundColor: 'var(--cpp-bg)', color: 'var(--cpp-value)', shadow: 'var(--summary-shadow)' }}>
+              <p className="font-mono text-[10px] font-black uppercase tracking-[0.2em] mb-2" style={{ color: 'var(--cpp-label)' }}>{t.costPerPerson}</p>
               <p className="text-5xl font-display italic tracking-tighter">${Math.round(totals.costEach).toLocaleString()}</p>
             </div>
           </div>
@@ -624,7 +814,7 @@ export default function App() {
                 <AlertCircle size={24} />
               </div>
               <div>
-                <p className="font-mono text-[10px] font-black uppercase tracking-widest opacity-70">
+                <p className="font-mono text-[10px] font-black uppercase tracking-widest text-black">
                   {totals.discrepancy > 0 ? t.missingFunds : t.extraFunds}
                 </p>
                 <p className="text-3xl font-display italic tracking-tighter">
@@ -637,14 +827,14 @@ export default function App() {
           {/* Individual Balances Table */}
           <section className="p5-card overflow-hidden">
             <div className="p-6 border-b-[3px] border-black bg-p5-pink/10">
-              <h2 className="text-xl font-display uppercase italic text-black">
+              <h2 className="text-xl font-display uppercase italic" style={{ color: 'var(--section-header)', textShadow: '2px 2px 0px var(--section-header-shadow)' }}>
                 {t.individualBalances}
               </h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-black text-white font-mono text-[10px] uppercase tracking-[0.2em]">
+                  <tr style={{ backgroundColor: 'var(--table-header-bg)', color: 'var(--table-header-text)' }} className="font-mono text-[10px] uppercase tracking-[0.2em]">
                     <th className="px-6 py-4">{t.name}</th>
                     <th className="px-6 py-4">{t.paid}</th>
                     <th className="px-6 py-4 text-right">{t.netBalance}</th>
@@ -653,11 +843,12 @@ export default function App() {
                 <tbody className="divide-y-[2px] divide-black/10">
                   {balances.map((b, i) => (
                     <tr key={i} className="hover:bg-p5-yellow/5 transition-colors">
-                      <td className="px-6 py-4 font-black uppercase tracking-tight text-black">{b.name}</td>
-                      <td className="px-6 py-4 font-mono text-sm text-black/70">${b.paid.toLocaleString()}</td>
-                      <td className={`px-6 py-4 text-right font-display italic text-2xl ${
-                         b.net > 0 ? 'text-emerald-600' : b.net < 0 ? 'text-rose-600' : 'text-black/30'
-                      }`}>
+                      <td className="px-6 py-4 font-black uppercase tracking-tight" style={{ color: 'var(--table-name)' }}>{b.name}</td>
+                      <td className="px-6 py-4 font-mono text-sm" style={{ color: 'var(--table-paid)' }}>${b.paid.toLocaleString()}</td>
+                      <td className="px-6 py-4 text-right font-display italic text-2xl" style={{ 
+                         color: b.net > 0 ? 'var(--table-net-pos)' : b.net < 0 ? 'var(--table-net-neg)' : 'var(--table-net-neu)',
+                         textShadow: 'var(--table-net-shadow)' 
+                      }}>
                         {b.net > 0 ? '+' : ''}{Math.round(b.net).toLocaleString()}
                       </td>
                     </tr>
@@ -668,9 +859,9 @@ export default function App() {
           </section>
 
           {/* Transactions Section */}
-          <section className="p5-card p-8 bg-black text-white border-none shadow-[12px_12px_0px_0px_var(--color-p5-purple)]">
+          <section className="p5-card p-8 border-none shadow-[12px_12px_0px_0px_var(--color-p5-purple)]" style={{ backgroundColor: 'var(--transactions-bg)', color: 'var(--transactions-text)' }}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
-              <h2 className="text-2xl font-display uppercase italic flex items-center gap-3 text-p5-cyan">
+              <h2 className="text-2xl font-display uppercase italic flex items-center gap-3 text-p5-cyan" style={{ textShadow: '2px 2px 0px var(--transactions-shadow)' }}>
                 <ArrowRight className="animate-bounce-x" />
                 {t.suggestedTransactions}
               </h2>
@@ -683,19 +874,44 @@ export default function App() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.1 }}
-                  className="flex items-center justify-between p-4 bg-white/5 border-white/20 border-[2px] group hover:bg-white/10 transition-colors"
+                  className="p-5 bg-white/10 border-white/10 border-[2px] group hover:bg-white/15 transition-colors relative overflow-hidden rounded-xl"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-p5-purple border-white border-2 flex items-center justify-center font-display text-xl italic">
-                      {t_item.from[0].toUpperCase()}
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-p5-yellow/10 rounded-full -mr-12 -mt-12 blur-2xl group-hover:bg-p5-yellow/20 transition-colors" />
+                  
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="w-14 h-14 bg-p5-purple border-white border-[3px] flex items-center justify-center font-display text-2xl italic shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] text-slate-800">
+                          {t_item.from[0].toUpperCase()}
+                        </div>
+                        <span className="font-mono text-[8px] uppercase tracking-widest font-bold" style={{ color: 'var(--trans-debtor)' }}>{t.debtor}</span>
+                      </div>
+
+                      <div className="flex-1 flex flex-col items-center px-2">
+                        <div className="w-full h-[2px] bg-white/40 relative">
+                          <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 rotate-45 w-2 h-2 border-t-2 border-r-2 border-white/60" />
+                        </div>
+                        <span className="font-mono text-[10px] uppercase tracking-[0.3em] my-1" style={{ color: 'var(--trans-pays)', textShadow: 'var(--trans-header-shadow)' }}>{t.pays}</span>
+                        <div className="w-full h-[2px] bg-white/40" />
+                      </div>
+
+                      <div className="flex flex-col items-center gap-1 text-right">
+                        <div className="w-14 h-14 bg-white border-slate-800 border-[3px] flex items-center justify-center font-display text-2xl italic text-slate-900 shadow-[4px_4px_0px_0px_var(--color-p5-cyan)]">
+                          {t_item.to[0].toUpperCase()}
+                        </div>
+                        <span className="font-mono text-[8px] uppercase tracking-widest font-bold" style={{ color: 'var(--trans-creditor)', textShadow: 'var(--trans-header-shadow)' }}>{t.creditor}</span>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-black uppercase tracking-tight text-p5-cyan">{t_item.from}</p>
-                      <p className="font-mono text-[10px] uppercase tracking-widest text-white/80">{t.pays} <span className="text-white font-bold">{t_item.to}</span></p>
+
+                    <div className="flex flex-col items-start sm:items-end justify-center min-w-[120px]">
+                      <div className="flex flex-col">
+                        <span className="font-display text-xl leading-none mb-1 tracking-tight" style={{ color: 'var(--trans-name)', textShadow: 'var(--trans-name-shadow)' }}>{t_item.from}</span>
+                        <span className="font-mono text-[9px] uppercase tracking-widest mb-3" style={{ color: 'var(--trans-to)', textShadow: 'var(--trans-header-shadow)' }}>{t.to} {t_item.to}</span>
+                      </div>
+                      <p className="text-4xl font-display italic tracking-tighter" style={{ color: 'var(--trans-amount)', textShadow: 'var(--trans-amount-shadow)' }}>
+                        ${t_item.amount.toLocaleString()}
+                      </p>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-3xl font-display italic tracking-tighter text-p5-yellow">${t_item.amount.toLocaleString()}</p>
                   </div>
                 </motion.div>
               ))}
@@ -707,7 +923,7 @@ export default function App() {
                       <div className="w-20 h-20 bg-p5-yellow/10 border-p5-yellow border-2 flex items-center justify-center mx-auto animate-p5-glitch">
                         <AlertCircle size={40} className="text-p5-yellow" />
                       </div>
-                      <p className="font-mono text-xs uppercase tracking-widest text-white/60 max-w-xs mx-auto leading-relaxed">
+                      <p className="font-mono text-xs uppercase tracking-widest font-bold max-w-xs mx-auto leading-relaxed" style={{ color: 'var(--discrepancy-text)' }}>
                         {t.discrepancyWarning}
                       </p>
                     </div>
@@ -720,14 +936,14 @@ export default function App() {
                       <div className="w-20 h-20 bg-p5-green/20 text-p5-green border-p5-green border-2 flex items-center justify-center mx-auto">
                         <CheckCircle2 size={40} />
                       </div>
-                      <p className="text-3xl font-display italic tracking-tighter text-p5-green uppercase">{t.allSettled}</p>
+                      <p className="text-3xl font-display italic tracking-tighter uppercase" style={{ color: 'var(--all-settled-text)' }}>{t.allSettled}</p>
                     </motion.div>
                   )}
                 </div>
               )}
               
               {people.length === 0 && (
-                <p className="text-center py-12 font-mono text-xs uppercase tracking-[0.3em] text-white/20">{t.addPeopleToSee}</p>
+                <p className="text-center py-12 font-mono text-xs uppercase tracking-[0.3em]" style={{ color: 'var(--add-people-text)' }}>{t.addPeopleToSee}</p>
               )}
             </div>
           </section>
@@ -735,7 +951,7 @@ export default function App() {
       </main>
 
       <footer className="max-w-6xl mx-auto px-4 py-12 border-t-[3px] border-black mt-12 text-center bg-white p5-jagged-border">
-        <p className="font-mono text-[10px] font-black uppercase tracking-[0.3em] text-black/40">
+        <p className="font-mono text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: 'var(--footer-text)' }}>
           {t.title} &bull; {t.builtWith}
         </p>
       </footer>
@@ -744,63 +960,93 @@ export default function App() {
       <div className="fixed left-[-9999px] top-0">
         <div 
           ref={shareRef}
-          className="w-[600px] p-10 bg-[#f0f0f0] text-black font-sans relative overflow-hidden"
-          style={{ backgroundColor: '#f0f0f0' }}
+          className="w-[600px] p-10 font-sans relative overflow-hidden"
+          style={{ backgroundColor: 'var(--share-bg)', color: 'var(--share-text)' }}
         >
           {/* Background pattern for share image */}
-          <div className="absolute inset-0 opacity-10 pointer-events-none">
-             <div className="absolute top-0 left-0 w-full h-full" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+          <div className="absolute inset-0 opacity-5 pointer-events-none">
+             <div className="absolute top-0 left-0 w-full h-full" style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
           </div>
 
           <div className="relative z-10 space-y-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-p5-purple border-black border-[3px] flex items-center justify-center text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <div className="w-12 h-12 border-white border-[2px] flex items-center justify-center shadow-[4px_4px_0px_0px_var(--share-shadow)]" style={{ backgroundColor: 'var(--share-icon-bg)', color: 'var(--share-icon-color)' }}>
                   <Calculator size={28} />
                 </div>
-                <h1 className="font-display text-3xl uppercase italic tracking-tighter">{t.title}</h1>
+                <h1 className="font-display text-3xl uppercase italic tracking-normal" style={{ color: 'var(--share-text)' }}>{t.title}</h1>
               </div>
-              <p className="font-mono text-[10px] font-black uppercase tracking-widest text-black/40">{new Date().toLocaleDateString()}</p>
+              <p className="font-mono text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--share-date)' }}>{new Date().toLocaleDateString()}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-6">
-              <div className="bg-p5-purple p-8 border-black border-[3px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-white">
-                <p className="font-mono text-[10px] font-black uppercase tracking-widest mb-2 text-white/70">{t.totalCost}</p>
-                <p className="text-4xl font-display italic tracking-tighter">${totals.totalCost.toLocaleString()}</p>
+              <div className="bg-p5-purple p-8 border-white/20 border-[2px] shadow-[6px_6px_0px_0px_var(--share-shadow)] text-slate-800">
+                <p className="font-mono text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: 'var(--share-stat-label)' }}>{t.totalCost}</p>
+                <p className="text-4xl font-display italic tracking-tighter" style={{ color: 'var(--share-stat-value)' }}>${totals.totalCost.toLocaleString()}</p>
               </div>
-              <div className="bg-p5-cyan p-8 border-black border-[3px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-black">
-                <p className="font-mono text-[10px] font-black uppercase tracking-widest mb-2 text-black/60">{t.costPerPerson}</p>
-                <p className="text-4xl font-display italic tracking-tighter">${Math.round(totals.costEach).toLocaleString()}</p>
+              <div className="bg-p5-cyan p-8 border-white/20 border-[2px] shadow-[6px_6px_0px_0px_var(--share-shadow)] text-slate-800">
+                <p className="font-mono text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: 'var(--share-stat-label)' }}>{t.costPerPerson}</p>
+                <p className="text-4xl font-display italic tracking-tighter" style={{ color: 'var(--share-stat-value)' }}>${Math.round(totals.costEach).toLocaleString()}</p>
               </div>
             </div>
 
-            <div className="bg-white border-black border-[3px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8">
-              <h2 className="font-mono text-[10px] font-black uppercase tracking-[0.2em] text-black/50 mb-6 border-b-2 border-black/10 pb-2">
+            <div className="bg-white/10 border-white/10 border-[2px] shadow-[6px_6px_0px_0px_var(--share-shadow)] p-8 rounded-xl">
+              <h2 className="font-mono text-[10px] font-black uppercase tracking-[0.2em] mb-6 border-b-2 border-white/5 pb-2" style={{ color: 'var(--share-sec-header)' }}>
                 {t.suggestedTransactions}
               </h2>
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {transactions.map((t_item, i) => (
-                  <div key={i} className="flex items-center justify-between border-b-2 border-black/5 pb-4 last:border-0 last:pb-0">
-                    <p className="font-black uppercase tracking-tight text-lg">
-                      <span className="text-p5-purple">{t_item.from}</span>
-                      <span className="mx-3 font-mono text-[10px] text-black/60 font-bold uppercase tracking-widest">{t.pays}</span>
-                      <span className="text-black">{t_item.to}</span>
-                    </p>
-                    <span className="text-3xl font-display italic tracking-tighter text-black">${t_item.amount.toLocaleString()}</span>
+                  <div key={i} className="flex items-center gap-6 p-4 bg-white/5 border-white/10 border-[2px] rounded-lg">
+                    <div className="flex-1 flex items-center gap-4">
+                      <div className="flex flex-col items-center">
+                        <div className="w-10 h-10 bg-p5-purple border-white border-2 flex items-center justify-center text-slate-800 font-display text-lg italic">
+                          {t_item.from[0].toUpperCase()}
+                        </div>
+                        <span className="font-black uppercase tracking-tight text-[10px] mt-1" style={{ color: 'var(--share-item-name)' }}>{t_item.from}</span>
+                      </div>
+                      
+                      <div className="flex-1 flex flex-col items-center">
+                        <div className="w-full h-[1px] bg-white/20 relative">
+                          <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 rotate-45 w-1.5 h-1.5 border-t-2 border-r-2 border-white/30" />
+                        </div>
+                        <span className="font-mono text-[8px] uppercase tracking-[0.2em] my-1" style={{ color: 'var(--share-pays)' }}>{t.pays}</span>
+                      </div>
+
+                      <div className="flex flex-col items-center">
+                        <div className="w-10 h-10 bg-p5-cyan border-white border-2 flex items-center justify-center text-slate-800 font-display text-lg italic">
+                          {t_item.to[0].toUpperCase()}
+                        </div>
+                        <span className="font-black uppercase tracking-tight text-[10px] mt-1" style={{ color: 'var(--share-item-name)' }}>{t_item.to}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right border-l-2 border-white/10 pl-6 py-2">
+                      <p className="font-mono text-[8px] font-black uppercase tracking-widest mb-1" style={{ color: 'var(--share-amount-label)' }}>{t.amountLabel}</p>
+                      <p className="text-3xl font-display italic tracking-tighter" style={{ color: 'var(--share-amount-value)' }}>${t_item.amount.toLocaleString()}</p>
+                    </div>
                   </div>
                 ))}
                 {transactions.length === 0 && (
-                  <p className="text-center text-black/30 font-mono text-xs uppercase tracking-widest py-8 italic">{t.allSettled}</p>
+                  <p className="text-center text-white/40 font-mono text-xs uppercase tracking-widest py-8 italic">{t.allSettled}</p>
                 )}
               </div>
             </div>
 
             <div className="text-center pt-4">
-              <p className="font-mono text-[9px] text-black/30 font-black tracking-[0.4em] uppercase">Spending Splitter Summary &bull; 90s Edition</p>
+              <p className="font-mono text-[9px] font-black tracking-[0.4em] uppercase" style={{ color: 'var(--share-footer)' }}>{t.title} &bull; {t.pastelEdition}</p>
             </div>
           </div>
         </div>
       </div>
+      <AdminPanel 
+        isOpen={isAdminOpen} 
+        onClose={() => setIsAdminOpen(false)} 
+        onApply={handleAdminApply}
+        onResetData={(newPeople, newItems) => {
+          setPeople(newPeople);
+          setCostItems(newItems);
+        }}
+      />
     </div>
   );
 }
