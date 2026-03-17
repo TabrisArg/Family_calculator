@@ -84,6 +84,7 @@ export const themeConfig = {
 
   // --- Share Summary (Image Export) ---
   shareBg: "#0f172a",
+  shareTextColor: "#ffffff",
   shareTitleColor: "#ffffff",
   shareDateColor: "rgba(255,255,255,0.4)",
   shareStatLabelColor: "#475569", // slate-600

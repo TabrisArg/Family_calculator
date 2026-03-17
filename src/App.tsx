@@ -391,12 +391,13 @@ export default function App() {
     if (!shareRef.current) return;
     setIsSharing(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Small delay to ensure any pending renders are complete
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       const dataUrl = await toPng(shareRef.current, {
-        quality: 0.95,
-        backgroundColor: '#ffffff',
+        quality: 1,
         cacheBust: true,
+        pixelRatio: 2, // Higher quality
       });
       
       const blob = await (await fetch(dataUrl)).blob();
@@ -498,18 +499,19 @@ export default function App() {
           --cpp-value: ${currentTheme.costPerPersonValueColor};
           --summary-shadow: ${currentTheme.summaryCardShadow};
           
-          --share-bg: ${currentTheme.shareBackground};
+          --share-bg: ${currentTheme.shareBg};
+          --share-text: ${currentTheme.shareTextColor};
           --share-title: ${currentTheme.shareTitleColor};
           --share-date: ${currentTheme.shareDateColor};
           --share-stat-label: ${currentTheme.shareStatLabelColor};
           --share-stat-value: ${currentTheme.shareStatValueColor};
-          --share-section: ${currentTheme.shareSectionHeaderColor};
+          --share-sec-header: ${currentTheme.shareSectionHeaderColor};
           --share-item-name: ${currentTheme.shareItemNameColor};
-          --share-pays-label: ${currentTheme.sharePaysLabelColor};
+          --share-pays: ${currentTheme.sharePaysLabelColor};
           --share-amount-label: ${currentTheme.shareAmountLabelColor};
           --share-amount-value: ${currentTheme.shareAmountValueColor};
           --share-footer: ${currentTheme.shareFooterColor};
-          --share-shadow: ${currentTheme.shareShadow};
+          --share-shadow: ${currentTheme.shareShadowColor};
           --share-icon-bg: ${currentTheme.shareIconBg};
           --share-icon-color: ${currentTheme.shareIconColor};
         }
