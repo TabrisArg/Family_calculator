@@ -415,6 +415,8 @@ export default function App() {
     <div 
       className={`min-h-screen selection:bg-p5-yellow selection:text-black ${isColorChangeMode ? 'cursor-crosshair' : ''}`}
       onClick={handleElementClick}
+      style={{ backgroundColor: 'var(--page-bg)', color: 'var(--main-text)' }}
+      data-theme-key="pageBgColor"
     >
       <style>{`
         :root {
@@ -422,6 +424,7 @@ export default function App() {
           --muted-text: ${currentTheme.mutedTextColor};
           --sync-text: ${currentTheme.syncContributionsTextColor};
           --footer-text: ${currentTheme.footerTextColor};
+          --page-bg: ${currentTheme.pageBgColor};
           
           --header-title: ${currentTheme.headerTitleColor};
           --header-title-shadow: ${currentTheme.headerTitleShadow};
@@ -525,7 +528,7 @@ export default function App() {
             <div className="w-12 h-12 border-black border-[3px] flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" 
                  style={{ backgroundColor: 'var(--header-icon-bg)', color: 'var(--header-icon-color)' }}
                  data-theme-key="headerIconBg">
-              <Calculator size={28} />
+              <Calculator size={28} data-theme-key="headerIconColor" />
             </div>
             <h1 className="p5-header-text" 
                 style={{ color: 'var(--header-title)', textShadow: 'var(--header-title-shadow)' }}
@@ -576,7 +579,8 @@ export default function App() {
               onClick={handleShare}
               disabled={isSharing}
               className="p5-button flex items-center gap-2"
-              style={{ textShadow: '2px 2px 0px rgba(0,0,0,0.5)' }}
+              style={{ color: 'var(--button-text)', textShadow: 'var(--button-text-shadow)' }}
+              data-theme-key="buttonTextColor"
             >
               {isSharing ? <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" /> : <Share2 size={18} />}
               <span className="hidden sm:inline">{isSharing ? t.sharing : t.share}</span>
@@ -626,6 +630,7 @@ export default function App() {
                   onChange={(e) => setNewPersonName(e.target.value)}
                   className="p5-input"
                   style={{ color: 'var(--form-input)' }}
+                  data-theme-key="formInputTextColor"
                 />
               </div>
               <div className="w-28">
@@ -637,9 +642,10 @@ export default function App() {
                   onChange={(e) => setNewPersonPaid(e.target.value)}
                   className="p5-input"
                   style={{ color: 'var(--form-input)' }}
+                  data-theme-key="formInputTextColor"
                 />
               </div>
-              <button type="submit" className="p5-button self-end h-[46px] w-[46px] flex items-center justify-center p-0" style={{ color: 'var(--button-text)', textShadow: 'var(--button-text-shadow)' }}>
+              <button type="submit" className="p5-button self-end h-[46px] w-[46px] flex items-center justify-center p-0" style={{ color: 'var(--button-text)', textShadow: 'var(--button-text-shadow)' }} data-theme-key="buttonTextColor">
                 <Plus size={24} />
               </button>
             </form>
@@ -752,6 +758,7 @@ export default function App() {
                   onChange={(e) => setNewCostName(e.target.value)}
                   className="p5-input"
                   style={{ color: 'var(--form-input)' }}
+                  data-theme-key="formInputTextColor"
                 />
               </div>
               <div className="flex gap-3">
@@ -764,6 +771,7 @@ export default function App() {
                     onChange={(e) => setNewCostAmount(e.target.value)}
                     className="p5-input"
                     style={{ color: 'var(--form-input)' }}
+                    data-theme-key="formInputTextColor"
                   />
                 </div>
                 <div className="flex-1">
@@ -773,6 +781,7 @@ export default function App() {
                     onChange={(e) => setSelectedPayerId(e.target.value)}
                     className="p5-input bg-white cursor-pointer appearance-none"
                     style={{ color: 'var(--form-input)' }}
+                    data-theme-key="formInputTextColor"
                   >
                     <option value="">{t.whoPaid}</option>
                     {people.map(p => (
@@ -781,7 +790,7 @@ export default function App() {
                   </select>
                 </div>
               </div>
-              <button type="submit" className="p5-button w-full flex items-center justify-center gap-2" style={{ color: 'var(--button-text)', textShadow: 'var(--button-text-shadow)' }}>
+              <button type="submit" className="p5-button w-full flex items-center justify-center gap-2" style={{ color: 'var(--button-text)', textShadow: 'var(--button-text-shadow)' }} data-theme-key="buttonTextColor">
                 <Plus size={20} />
                 {t.costItems}
               </button>
@@ -879,8 +888,8 @@ export default function App() {
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="p5-card p-8 border-black" 
-                 style={{ backgroundColor: 'var(--total-cost-bg)', color: 'var(--total-cost-value)', shadow: 'var(--summary-shadow)' }}
-                 data-theme-key="summaryTotalCardBg">
+                 style={{ backgroundColor: 'var(--total-cost-bg)', color: 'var(--total-cost-value)', boxShadow: 'var(--summary-shadow)' }}
+                 data-theme-key="summaryCardShadow">
               <p className="font-mono text-[10px] font-black uppercase tracking-[0.2em] mb-2" 
                  style={{ color: 'var(--total-cost-label)' }}
                  data-theme-key="summaryTotalLabelColor">
@@ -889,8 +898,8 @@ export default function App() {
               <p className="text-5xl font-display italic tracking-tighter" data-theme-key="summaryTotalValueColor">${totals.totalCost.toLocaleString()}</p>
             </div>
             <div className="p5-card p-8 border-black" 
-                 style={{ backgroundColor: 'var(--cpp-bg)', color: 'var(--cpp-value)', shadow: 'var(--summary-shadow)' }}
-                 data-theme-key="costPerPersonCardBg">
+                 style={{ backgroundColor: 'var(--cpp-bg)', color: 'var(--cpp-value)', boxShadow: 'var(--summary-shadow)' }}
+                 data-theme-key="summaryCardShadow">
               <p className="font-mono text-[10px] font-black uppercase tracking-[0.2em] mb-2" 
                  style={{ color: 'var(--cpp-label)' }}
                  data-theme-key="costPerPersonLabelColor">
@@ -962,7 +971,7 @@ export default function App() {
                          color: b.net > 0 ? 'var(--table-net-pos)' : b.net < 0 ? 'var(--table-net-neg)' : 'var(--table-net-neu)',
                          textShadow: 'var(--table-net-shadow)' 
                       }}
-                      data-theme-key={b.net > 0 ? 'tableNetPositiveColor' : b.net < 0 ? 'tableNetNegativeColor' : 'tableNetNeutralColor'}>
+                      data-theme-key="tableNetShadow">
                         {b.net > 0 ? '+' : ''}{Math.round(b.net).toLocaleString()}
                       </td>
                     </tr>
@@ -978,8 +987,8 @@ export default function App() {
                    data-theme-key="transactionsCardBg">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
               <h2 className="text-2xl font-display uppercase italic flex items-center gap-3" 
-                  style={{ color: 'var(--trans-header)', textShadow: '2px 2px 0px var(--trans-header-shadow)' }}
-                  data-theme-key="transactionsHeaderColor">
+                  style={{ color: 'var(--trans-header)', textShadow: 'var(--trans-header-shadow)' }}
+                  data-theme-key="transactionsHeaderShadow">
                 <ArrowRight className="animate-bounce-x" />
                 {t.suggestedTransactions}
               </h2>
@@ -1037,7 +1046,7 @@ export default function App() {
                       <div className="flex flex-col">
                         <span className="font-display text-xl leading-none mb-1 tracking-tight" 
                               style={{ color: 'var(--trans-name)', textShadow: 'var(--trans-name-shadow)' }}
-                              data-theme-key="transactionNameColor">
+                              data-theme-key="transactionNameShadow">
                           {t_item.from}
                         </span>
                         <span className="font-mono text-[9px] uppercase tracking-widest mb-3" 
@@ -1048,7 +1057,7 @@ export default function App() {
                       </div>
                       <p className="text-4xl font-display italic tracking-tighter" 
                          style={{ color: 'var(--trans-amount)', textShadow: 'var(--trans-amount-shadow)' }}
-                         data-theme-key="transactionAmountColor">
+                         data-theme-key="transactionAmountShadow">
                         ${t_item.amount.toLocaleString()}
                       </p>
                     </div>

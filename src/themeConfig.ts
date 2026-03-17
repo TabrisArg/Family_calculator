@@ -10,6 +10,7 @@ export const themeConfig = {
   mutedTextColor: "#64748b",
   syncContributionsTextColor: "#0f172a",
   footerTextColor: "#000000",
+  pageBgColor: "#f8fafc", // slate-50
 
   // --- Header ---
   headerTitleColor: "#000000",
