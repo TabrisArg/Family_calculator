@@ -127,7 +127,17 @@ const translations = {
 export default function App() {
   const [currentTheme, setCurrentTheme] = useState(() => {
     const saved = localStorage.getItem('splitter_theme_config');
-    return saved ? JSON.parse(saved) : themeConfig;
+    const theme = saved ? JSON.parse(saved) : { ...themeConfig };
+    
+    // Migration: Force new header title color if it's still the old default (#000000)
+    if (theme.headerTitleColor === "#000000") {
+      theme.headerTitleColor = themeConfig.headerTitleColor;
+    }
+    if (theme.shareTitleColor === "#ffffff") {
+      theme.shareTitleColor = themeConfig.shareTitleColor;
+    }
+    
+    return theme;
   });
 
   const [currentAdmin, setCurrentAdmin] = useState(() => {
@@ -536,13 +546,13 @@ export default function App() {
         <div className="absolute top-[20%] right-[10%] w-[20%] h-[20%] bg-p5-yellow p5-halftone opacity-30" />
       </div>
 
-      <header className="bg-white border-b-[4px] border-black py-6 sticky top-0 z-30 p5-jagged-border shadow-[0px_4px_0px_0px_rgba(0,0,0,1)]">
-        <div className="max-w-6xl mx-auto px-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 border-black border-[3px] flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" 
+      <header className="bg-white border-b-[4px] border-black py-4 sm:py-6 sticky top-0 z-30 p5-jagged-border shadow-[0px_4px_0px_0px_rgba(0,0,0,1)]">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 border-black border-[3px] flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" 
                  style={{ backgroundColor: 'var(--header-icon-bg)', color: 'var(--header-icon-color)' }}
                  data-theme-key="headerIconBg">
-              <Calculator size={28} data-theme-key="headerIconColor" />
+              <Calculator className="w-6 h-6 sm:w-7 sm:h-7" data-theme-key="headerIconColor" />
             </div>
             <h1 className="p5-header-text" 
                 style={{ color: 'var(--header-title)', textShadow: 'var(--header-title-shadow)' }}
@@ -551,7 +561,7 @@ export default function App() {
             </h1>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             {currentAdmin.SHOW_ADMIN_PANEL && (
               <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-full border-2 border-black">
                 <button
@@ -577,13 +587,13 @@ export default function App() {
             <div className="flex bg-black p-1">
               <button
                 onClick={() => setLang('es')}
-                className={`px-4 py-1.5 text-xs font-black transition-all ${lang === 'es' ? 'bg-p5-yellow text-black' : 'text-white hover:text-p5-yellow'}`}
+                className={`px-3 sm:px-4 py-1.5 text-xs font-black transition-all ${lang === 'es' ? 'bg-p5-yellow text-black' : 'text-white hover:text-p5-yellow'}`}
               >
                 ES
               </button>
               <button
                 onClick={() => setLang('en')}
-                className={`px-4 py-1.5 text-xs font-black transition-all ${lang === 'en' ? 'bg-p5-yellow text-black' : 'text-white hover:text-p5-yellow'}`}
+                className={`px-3 sm:px-4 py-1.5 text-xs font-black transition-all ${lang === 'en' ? 'bg-p5-yellow text-black' : 'text-white hover:text-p5-yellow'}`}
               >
                 EN
               </button>
@@ -592,7 +602,7 @@ export default function App() {
             <button
               onClick={handleShare}
               disabled={isSharing}
-              className="p5-button flex items-center gap-2"
+              className="p5-button flex items-center gap-2 px-4 sm:px-6"
               style={{ color: 'var(--button-text)', textShadow: 'var(--button-text-shadow)' }}
               data-theme-key="buttonTextColor"
             >

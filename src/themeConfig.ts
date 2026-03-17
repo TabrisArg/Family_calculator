@@ -13,7 +13,7 @@ export const themeConfig = {
   pageBgColor: "#f8fafc", // slate-50
 
   // --- Header ---
-  headerTitleColor: "#000000",
+  headerTitleColor: "#D1C4E9",
   headerTitleShadow: "4px 4px 0px rgba(0,0,0,1)",
   headerIconColor: "#ffffff",
   headerIconBg: "#D1C4E9", // p5-purple
@@ -85,7 +85,7 @@ export const themeConfig = {
   // --- Share Summary (Image Export) ---
   shareBg: "#0f172a",
   shareTextColor: "#ffffff",
-  shareTitleColor: "#ffffff",
+  shareTitleColor: "#D1C4E9",
   shareDateColor: "rgba(255,255,255,0.4)",
   shareStatLabelColor: "#475569", // slate-600
   shareStatValueColor: "#1e293b", // slate-800
