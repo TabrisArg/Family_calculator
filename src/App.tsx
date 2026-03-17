@@ -188,8 +188,18 @@ export default function App() {
   const handleElementClick = (e: React.MouseEvent) => {
     if (!isColorChangeMode) return;
     
-    // Find the closest element with a data-theme-key
     const target = e.target as HTMLElement;
+    
+    // Don't intercept clicks on the toggle button, admin panel, or color picker
+    if (
+      target.closest('.color-mode-toggle') || 
+      target.closest('.admin-panel-container') || 
+      target.closest('.color-picker-container')
+    ) {
+      return;
+    }
+    
+    // Find the closest element with a data-theme-key
     const themeElement = target.closest('[data-theme-key]');
     
     if (themeElement) {
@@ -414,7 +424,7 @@ export default function App() {
   return (
     <div 
       className={`min-h-screen selection:bg-p5-yellow selection:text-black ${isColorChangeMode ? 'cursor-crosshair' : ''}`}
-      onClick={handleElementClick}
+      onClickCapture={handleElementClick}
       style={{ backgroundColor: 'var(--page-bg)', color: 'var(--main-text)' }}
       data-theme-key="pageBgColor"
     >
@@ -445,6 +455,7 @@ export default function App() {
           --person-paid-label: ${currentTheme.personPaidLabelColor};
           --person-remove: ${currentTheme.personRemoveIconColor};
           
+          --people-card-bg: ${currentTheme.peopleCardBg};
           --cost-items-bg: ${currentTheme.costItemsCardBg};
           --cost-item-name: ${currentTheme.costItemNameColor};
           --cost-item-amount: ${currentTheme.costItemAmountColor};
@@ -461,6 +472,7 @@ export default function App() {
           --table-net-neu: ${currentTheme.tableNetNeutralColor};
           --table-net-shadow: ${currentTheme.tableNetShadow};
           
+          --balances-card-bg: ${currentTheme.balancesCardBg};
           --trans-bg: ${currentTheme.transactionsCardBg};
           --trans-header: ${currentTheme.transactionsHeaderColor};
           --trans-header-shadow: ${currentTheme.transactionsHeaderShadow};
@@ -545,7 +557,7 @@ export default function App() {
                     setIsColorChangeMode(!isColorChangeMode);
                     setActivePicker(null);
                   }}
-                  className={`p-2 rounded-full transition-all ${isColorChangeMode ? 'bg-p5-pink text-white shadow-[inset_2px_2px_4px_rgba(0,0,0,0.3)]' : 'hover:bg-black/5 text-slate-400'}`}
+                  className={`color-mode-toggle p-2 rounded-full transition-all ${isColorChangeMode ? 'bg-p5-pink text-white shadow-[inset_2px_2px_4px_rgba(0,0,0,0.3)]' : 'hover:bg-black/5 text-slate-400'}`}
                   title={isColorChangeMode ? "Disable Color Change Mode" : "Enable Color Change Mode"}
                 >
                   <MousePointer2 size={18} />
@@ -935,7 +947,7 @@ export default function App() {
           )}
 
           {/* Individual Balances Table */}
-          <section className="p5-card overflow-hidden">
+          <section className="p5-card overflow-hidden" style={{ backgroundColor: 'var(--balances-card-bg)' }} data-theme-key="balancesCardBg">
             <div className="p-6 border-b-[3px] border-black bg-p5-pink/10">
               <h2 className="text-xl font-display uppercase italic" 
                   style={{ color: 'var(--section-header)', textShadow: '2px 2px 0px var(--section-header-shadow)' }}

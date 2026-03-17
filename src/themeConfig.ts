@@ -31,6 +31,7 @@ export const themeConfig = {
   buttonTextShadow: "2px 2px 0px rgba(0,0,0,0.5)",
 
   // --- People List ---
+  peopleCardBg: "#ffffff",
   personNameColor: "#000000",
   personPaidColor: "#000000",
   personPaidLabelColor: "rgba(0,0,0,0.4)",
@@ -45,6 +46,7 @@ export const themeConfig = {
   costItemRemoveIconColor: "rgba(255,255,255,0.4)",
 
   // --- Balances Table ---
+  balancesCardBg: "#ffffff",
   tableHeaderBg: "#000000",
   tableHeaderTextColor: "#ffffff",
   tableNameColor: "#000000",

@@ -71,7 +71,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onApply
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-end">
+        <div className="admin-panel-container fixed inset-0 z-[100] flex items-center justify-end">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

@@ -33,7 +33,7 @@ export const FloatingColorPicker: React.FC<FloatingColorPickerProps> = ({
       document.addEventListener('mousedown', handleClickOutside);
     }
     return () => {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen, onClose]);
 
@@ -56,7 +56,7 @@ export const FloatingColorPicker: React.FC<FloatingColorPickerProps> = ({
           top: adjustedY,
           zIndex: 200,
         }}
-        className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-4 w-56 space-y-4"
+        className="color-picker-container bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-4 w-56 space-y-4"
       >
         <div className="flex items-center justify-between border-b-2 border-black pb-2">
           <span className="font-mono text-[10px] font-black uppercase tracking-widest text-slate-500 truncate pr-2">
