@@ -973,12 +973,12 @@ export default function App() {
           </section>
 
           {/* Transactions Section */}
-          <section className="p5-card p-8 border-none shadow-[12px_12px_0px_0px_var(--color-p5-purple)]" 
-                   style={{ backgroundColor: 'var(--transactions-bg)', color: 'var(--transactions-text)' }}
+          <section className="p5-card p-8 border-none shadow-[12px_12px_0px_0px_rgba(0,0,0,0.3)]" 
+                   style={{ backgroundColor: 'var(--trans-bg)' }}
                    data-theme-key="transactionsCardBg">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
-              <h2 className="text-2xl font-display uppercase italic flex items-center gap-3 text-p5-cyan" 
-                  style={{ textShadow: '2px 2px 0px var(--transactions-shadow)' }}
+              <h2 className="text-2xl font-display uppercase italic flex items-center gap-3" 
+                  style={{ color: 'var(--trans-header)', textShadow: '2px 2px 0px var(--trans-header-shadow)' }}
                   data-theme-key="transactionsHeaderColor">
                 <ArrowRight className="animate-bounce-x" />
                 {t.suggestedTransactions}
